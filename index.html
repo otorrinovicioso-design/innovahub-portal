@@ -370,6 +370,7 @@
         .tutorial-kicker { color:var(--accent-color); font-size:.62rem; letter-spacing:2.5px; font-weight:900; margin-bottom:6px; }
         .tutorial-title { font-size:clamp(1.35rem,3vw,2rem); margin:0; }
         .tutorial-copy { color:var(--text-secondary); font-size:.86rem; margin-top:6px; line-height:1.45; }
+        .tutorial-desktop-note { display:inline-flex; align-items:center; gap:7px; margin-top:11px; padding:7px 11px; border:1px solid rgba(255,170,0,.28); border-radius:10px; background:rgba(255,170,0,.07); color:#ffd27a; font-size:.66rem; font-weight:800; letter-spacing:.35px; }
         .tutorial-close { border:1px solid var(--glass-border); background:rgba(255,255,255,.04); color:#fff; border-radius:50%; width:36px; height:36px; cursor:pointer; flex:0 0 auto; }
         .tutorial-image-wrap { margin:0 24px; height:min(54vh,540px); border:1px solid var(--glass-border); border-radius:17px; overflow:hidden; background:#080808; display:flex; align-items:center; justify-content:center; }
         #tutorial-image { width:100%; height:100%; object-fit:contain; display:block; }
@@ -838,6 +839,7 @@
                     <div class="tutorial-kicker" id="tutorial-kicker">PASO 1 DE 4</div>
                     <h2 class="tutorial-title" id="tutorial-title">Crea tu aplicación</h2>
                     <p class="tutorial-copy" id="tutorial-copy">Pulsa Crear apps y cuéntale al asistente qué necesitas. Puedes explicarlo con tus propias palabras.</p>
+                    <div class="tutorial-desktop-note"><i data-lucide="monitor" style="width:14px"></i> CREAR Y AÑADIR APPS SOLO ESTÁ DISPONIBLE DESDE UN ORDENADOR</div>
                 </div>
                 <button class="tutorial-close" onclick="window.closeTutorial()" aria-label="Cerrar tutorial">×</button>
             </div>
