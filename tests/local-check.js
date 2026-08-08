@@ -16,6 +16,7 @@ if (!html.includes('https://accounts.google.com/gsi/client')) throw new Error('F
 if (/btn-sign-out[\s\S]{0,500}oauth2\.revoke/.test(app)) throw new Error('Cerrar sesión no debe revocar Google Drive');
 if (!app.includes("prompt: 'select_account'")) throw new Error('Google debe permitir elegir la cuenta al entrar');
 if (!html.includes('create-apps-link') || !app.includes('167YCVt2Ooh33x_dTeQRZ7LWAT34nGP10')) throw new Error('Falta el acceso al creador de apps');
+if (!html.includes('mobile-create-apps')) throw new Error('Falta Crear apps en el menú móvil');
 ['tutorial-overlay', 'tutorial-assets/01-crear-app.png', 'tutorial-nav-item'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta tutorial visual: ${token}`);
 });
