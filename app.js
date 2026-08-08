@@ -12,11 +12,7 @@ const DEFAULT_STATE = {
     activeCategory: 'todos',
     tutorialSeen: false,
     categories: [],
-    apps: [
-        { id: 'app_ai_studio', name: 'GOOGLE AI STUDIO', url: 'https://aistudio.google.com/', description: 'Crea y prueba tus aplicaciones con IA.', categoryId: '', favorite: true, color: '#00f2ff', icon: 'brain-circuit' },
-        { id: 'app_orl', name: 'ORL JAÉN', url: 'https://github.com/otorrinovicioso-design/ORLJAEN', description: 'Portal de herramientas y recursos de ORL.', categoryId: '', favorite: true, color: '#00ff88', icon: 'stethoscope' },
-        { id: 'app_estudiantes', name: 'PORTAL ESTUDIANTES', url: 'https://github.com/otorrinovicioso-design/ORLESTUDIANTES', description: 'Recursos organizados para estudiantes.', categoryId: '', favorite: true, color: '#bb00ff', icon: 'graduation-cap' }
-    ]
+    apps: []
 };
 
 let state = loadState();
