@@ -21,6 +21,7 @@ if (!html.includes('padding: 62px 20px 10px')) throw new Error('La cabecera móv
 if (!/apps:\s*\[\s*\]/.test(app)) throw new Error('Los hubs nuevos deben comenzar vacíos');
 if (html.includes('tutorial-mobile-btn')) throw new Error('El móvil no debe mostrar el tutorial');
 if (!app.includes("!window.matchMedia('(max-width: 768px)').matches")) throw new Error('El tutorial no debe abrirse automáticamente en móvil');
+if (!html.includes('grid-template-columns:repeat(3,1fr)')) throw new Error('Los tres botones móviles deben quedar centrados');
 ['tutorial-overlay', 'tutorial-assets/01-crear-app.png', 'tutorial-nav-item'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta tutorial visual: ${token}`);
 });
