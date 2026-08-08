@@ -16,9 +16,11 @@ if (!html.includes('https://accounts.google.com/gsi/client')) throw new Error('F
 if (/btn-sign-out[\s\S]{0,500}oauth2\.revoke/.test(app)) throw new Error('Cerrar sesión no debe revocar Google Drive');
 if (!app.includes("prompt: 'select_account'")) throw new Error('Google debe permitir elegir la cuenta al entrar');
 if (!html.includes('create-apps-link') || !app.includes('167YCVt2Ooh33x_dTeQRZ7LWAT34nGP10')) throw new Error('Falta el acceso al creador de apps');
-if (!html.includes('mobile-create-apps')) throw new Error('Falta Crear apps en el menú móvil');
+if (html.includes('mobile-create-apps') || html.includes('mobile-add')) throw new Error('El móvil no debe mostrar Crear apps ni Añadir');
 if (!html.includes('padding: 62px 20px 10px')) throw new Error('La cabecera móvil no reserva espacio para Tutorial y Ajustes');
 if (!/apps:\s*\[\s*\]/.test(app)) throw new Error('Los hubs nuevos deben comenzar vacíos');
+if (html.includes('tutorial-mobile-btn')) throw new Error('El móvil no debe mostrar el tutorial');
+if (!app.includes("!window.matchMedia('(max-width: 768px)').matches")) throw new Error('El tutorial no debe abrirse automáticamente en móvil');
 ['tutorial-overlay', 'tutorial-assets/01-crear-app.png', 'tutorial-nav-item'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta tutorial visual: ${token}`);
 });

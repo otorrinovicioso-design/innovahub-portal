@@ -239,7 +239,7 @@ function renderDashboard() {
         apps.forEach((app) => container.appendChild(renderCard(app)));
     }
     lucide.createIcons();
-    if (!tutorialAutoHandled && !state.tutorialSeen) {
+    if (!tutorialAutoHandled && !state.tutorialSeen && !window.matchMedia('(max-width: 768px)').matches) {
         tutorialAutoHandled = true;
         setTimeout(() => window.openTutorial(), 350);
     }

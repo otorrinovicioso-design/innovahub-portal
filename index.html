@@ -364,8 +364,6 @@
         }
         .create-apps-link:hover { border-color: #bb00ff !important; color: #fff !important; box-shadow: inset 0 0 26px rgba(187, 0, 255, .18), 0 0 20px rgba(187, 0, 255, .12); }
         .tutorial-nav-item { color: #9feeff; }
-        .mobile-create-apps i, .mobile-create-apps span { color:#d9b8ff !important; }
-        .tutorial-mobile-btn { right: 68px !important; }
         #tutorial-overlay { position:fixed; inset:0; z-index:8000; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(0,0,0,.88); backdrop-filter:blur(18px); }
         .tutorial-modal { width:min(960px,96vw); max-height:92vh; overflow:hidden; border:1px solid rgba(var(--accent-rgb),.38); border-radius:24px; background:linear-gradient(145deg,rgba(18,18,22,.98),rgba(7,7,9,.98)); box-shadow:0 28px 90px #000, inset 0 0 55px rgba(var(--accent-rgb),.05); }
         .tutorial-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px 24px 16px; }
@@ -458,7 +456,6 @@
 
             .sidebar-header, aside > .category-section, aside > .user-section { display: none !important; }
             .settings-gear-btn { top: 20px !important; right: 20px !important; width: 35px !important; height: 35px !important; display: flex !important; left: auto !important;}
-            .tutorial-mobile-btn { right:68px !important; }
             .settings-gear-btn i { width: 16px !important; }
             #tutorial-overlay { padding:10px; }
             .tutorial-modal { max-height:96vh; border-radius:19px; }
@@ -658,7 +655,6 @@
             aside > .desktop-actions { display:none !important; }
             aside > .mobile-portal-nav { display:grid !important; grid-template-columns:repeat(4,1fr); width:100%; gap:2px; }
             .mobile-portal-nav .nav-item { min-width:0; }
-            .mobile-portal-nav .mobile-add i,.mobile-portal-nav .mobile-add span{color:#00ff88!important}
             .mobile-portal-nav .mobile-favorites i,.mobile-portal-nav .mobile-favorites span{color:#bb00ff!important}
             .mobile-portal-nav .mobile-categories-button i,.mobile-portal-nav .mobile-categories-button span{color:#ffaa00!important}
             .portal-card-desc { display:none; }
@@ -746,8 +742,6 @@
                 </div>
 
                 <div class="mobile-portal-nav">
-                    <div class="nav-item mobile-create-apps" onclick="window.openGemCreator()"><i data-lucide="sparkles"></i><span class="nav-label">Crear apps</span></div>
-                    <div class="nav-item mobile-add" onclick="window.openPortalAppForm()"><i data-lucide="plus-circle"></i><span class="nav-label">Añadir</span></div>
                     <div class="nav-item" onclick="window.selectPortalCategory('todos')"><i data-lucide="layout-grid"></i><span class="nav-label">Todos</span></div>
                     <div class="nav-item mobile-favorites" onclick="window.selectPortalCategory('favoritos')"><i data-lucide="star"></i><span class="nav-label">Favoritos</span></div>
                     <div class="nav-item mobile-categories-button" onclick="window.togglePortalCategories(event)"><i data-lucide="layers"></i><span class="nav-label">Categorías</span></div>
@@ -777,9 +771,6 @@
             </aside>
             <main>
                 <div class="sticky-header-wrap">
-                    <button class="settings-gear-btn mobile-only tutorial-mobile-btn" onclick="window.openTutorial()" aria-label="Abrir tutorial">
-                        <i data-lucide="circle-help" style="width: 16px;"></i>
-                    </button>
                     <div class="settings-gear-btn mobile-only" onclick="openUserOptions()">
                         <i data-lucide="settings" style="width: 16px;"></i>
                     </div>
