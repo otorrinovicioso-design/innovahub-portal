@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Innova Hub | Tu ecosistema de apps</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface: #0e0e0e;
+            --surface-container: #131313;
+            --accent-color: #00f2ff; /* Default */
+            --accent-rgb: 0, 242, 255;
+            --accent-glow: rgba(0, 242, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #adaaaa;
+            --transition: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1, h2, h3, .brand { font-family: 'Space Grotesk', sans-serif; }
+
+        body, html {
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        /* Focus global elegante para Inputs */
+        input { outline: none; border: 1px solid var(--glass-border); transition: 0.3s; text-transform: uppercase; }
+        input:focus { border-color: var(--accent-color) !important; box-shadow: 0 0 20px var(--accent-glow) !important; }
+
+        .bg-mesh {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 100% 100%, var(--accent-glow) 0%, transparent 40%);
+            opacity: 0.5;
+            transition: background 1s ease;
+        }
+
+        .view {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            opacity: 0;
+            transition: all 0.6s var(--transition);
+            transform: scale(0.98);
+        }
+
+        .view.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1);
+            overflow-y: auto;
+        }
+
+        /* LANDING STYLE */
+        #view-landing {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px 0 20px;
+            text-align: center;
+            overflow: hidden; 
+            position: relative;
+        }
+
+        .lang-switcher-top {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--accent-color); 
+            color: #000 !important;
+            padding: 10px 20px; border-radius: 30px; 
+            font-size: 0.75rem; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; z-index: 1000;
+            box-shadow: 0 4px 20px var(--accent-glow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+        .lang-switcher-top:hover { transform: translateY(-3px); filter: brightness(1.1); }
+
+        .gradient-text {
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            background-clip: text; /* Fix Lint */
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+
+        /* PRICING (Visual Only) */
+        .pricing-section {
+            margin-top: 25px; /* Acercado al limite del boton */
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding-bottom: 50px;
+        }
+        .pricing-tier {
+            box-sizing: border-box; /* CRITICAL: Evita que el texto escupa la tarjeta en movil */
+            background: rgba(30, 40, 50, 0.5); /* Fuerte presencia base gris azulada */
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 30px;
+            width: 300px;
+            text-align: left;
+            transition: all 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 2px 10px rgba(255,255,255,0.08); /* Fuerte pop tridimensional inicial */
+        }
+        .pricing-tier:hover, .pricing-tier:active {
+            border-color: var(--accent-color);
+            background: rgba(40, 55, 80, 0.7);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8), inset 0 0 20px var(--accent-glow);
+            transform: translateY(-8px) scale(1.03);
+        }
+        .pricing-tier h3 { font-size: 1.5rem; margin-bottom: 5px; }
+        .pricing-tier .price { font-size: 2rem; font-weight: 900; color: var(--accent-color); margin-bottom: 20px; }
+        .pricing-tier ul { list-style: none; margin-bottom: 30px; color: var(--text-secondary); font-size: 0.85rem; }
+        .pricing-tier li { margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px;}
+        .pricing-tier i { color: var(--accent-color); margin-top: 2px;}
+
+        /* SETUP IMAGES */
+        .color-swatches { display: flex; gap: 30px; margin-top: 20px; justify-content: center; overflow-x: auto; padding: 20px 0; }
+        .swatch { width: 220px; border-radius: 12px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.6) grayscale(0.5); }
+        .swatch.selected { filter: brightness(1) grayscale(0); transform: scale(1.05); box-shadow: 0 10px 40px currentColor; border-color: currentColor !important; border-width: 3px !important; z-index: 10; position: relative; }
+        .swatch-wrap { text-align: center; cursor: pointer; transition: 0.3s; }
+        .swatch-wrap:hover .swatch { filter: brightness(1.2) grayscale(0); transform: scale(1.02) translateY(-5px); border-color: var(--wrap-color); box-shadow: 0 15px 40px var(--wrap-color); border-width: 3px; }
+        .swatch-wrap:hover .theme-label { color: var(--wrap-color) !important; text-shadow: 0 0 15px var(--wrap-color) !important; }
+
+        /* DASHBOARD GRID */
+        .dashboard-container { display: flex; width: 100%; height: 100%; }
+        
+        aside {
+            width: 280px;
+            background: var(--surface);
+            background-image: linear-gradient(180deg, var(--accent-glow) -250%, transparent 50%);
+            border-right: 1px solid var(--glass-border);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: inset -15px 0 50px -15px var(--accent-color);
+        }
+
+        .category-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .category-header {
+            font-size: 0.65rem; letter-spacing: 2px; opacity: 0.5; font-weight: 800; padding: 0 10px; margin-bottom: 10px;
+        }
+
+        main {
+            flex-grow: 1;
+            padding: 0 4vw 6vh 4vw;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sticky-header-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            background: linear-gradient(180deg, var(--bg-color) 40%, transparent);
+            backdrop-filter: blur(20px);
+            padding: 25px 40px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .settings-gear-btn {
+            position: absolute; top: 25px; right: 4vw; width: 35px; height: 35px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            color: rgba(255,255,255,0.4); cursor: pointer; transition: 0.3s; z-index: 1001;
+        }
+        .settings-gear-btn:hover { color: var(--accent-color); border-color: var(--accent-color); background: rgba(255,255,255,0.08); transform: rotate(45deg); }
+        
+        .lang-globe-btn {
+            position: absolute; top: 25px; right: calc(4vw + 50px); width: 35px; height: 35px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            color: rgba(255,255,255,0.4); cursor: pointer; transition: 0.3s; z-index: 1001;
+        }
+        .lang-globe-btn:hover { color: var(--accent-color); border-color: var(--accent-color); background: rgba(255,255,255,0.08); }
+
+        .main-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .hub-title-hero {
+            font-size: clamp(2.5rem, 5vw, 5.5rem);
+            font-weight: 900;
+            letter-spacing: 2px !important;
+            margin-bottom: 5px;
+            text-align: center;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-clamp: 2;
+            overflow: hidden;
+            line-height: 1.1;
+            max-height: 2.2em;
+            transition: font-size 0.2s ease;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 4vh;
+        }
+
+        .app-card {
+            background: rgba(20,20,20,0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s var(--transition);
+            cursor: pointer;
+            aspect-ratio: 1; /* PERFECT SQUARE */
+            text-align: center;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .app-card:hover, .app-card:active {
+            border-color: var(--accent-color);
+            background: rgba(255,255,255,0.04);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6), inset 0 0 20px var(--accent-glow);
+            transform: translateY(-5px) scale(1.03);
+        }
+
+        .app-card .icon-box {
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 12px;
+            border: 1px solid var(--glass-border);
+            flex-shrink: 0;
+            color: var(--card-color, #fff); /* Custom card color support */
+        }
+        
+        .app-card:hover .icon-box {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .app-card h3 { font-size: 0.7rem; font-weight: 700; line-height: 1.2; }
+
+        .nav-item {
+            padding: 14px 18px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            transition: all 0.25s;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--glass-border);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.05);
+        }
+        .nav-item.action { border-color: rgba(255,255,255,0.1); color: #fff; background: rgba(255,255,255,0.02);}
+        .nav-item.action:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border-color: var(--accent-color);
+            box-shadow: inset 0 0 15px var(--accent-glow);
+        }
+
+        .cat-item {
+            padding: 10px 18px; font-size: 0.75rem; border-radius: 8px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        }
+        .cat-item:hover { background: rgba(255,255,255,0.03); color: #fff; }
+        .cat-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+
+        /* DEMO CARDS (Plantillas vacías) */
+        .demo-card {
+            background: rgba(30, 45, 75, 0.4); /* Faint slate blue tint */
+            border: 1px dashed rgba(100, 150, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        .demo-card:hover, .demo-card:active {
+            border: 1px dashed var(--accent-color);
+            background: rgba(40, 55, 90, 0.6);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5), inset 0 0 20px var(--accent-glow);
+            transform: translateY(-5px) scale(1.03);
+        }
+
+        /* Ocultar barra de categorias movil en escritorio */
+        .mobile-categories { display: none; }
+
+        /* MODALS */
+        #creator-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(20px);
+        }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--accent-color);
+            border-radius: 30px; padding: 40px;
+            width: 90%; max-width: 500px; text-align: center;
+        }
+        textarea, input[type="text"] {
+            width: 100%; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 15px; color: #fff; margin: 10px 0 20px; outline: none;
+        }
+        .btn-primary {
+            background: var(--accent-color); color: #000;
+            padding: 15px 30px; border-radius: 12px; border: none;
+            font-weight: 800; cursor: pointer; width: 100%;
+        }
+        .btn-disabled { opacity: 0.3 !important; cursor: not-allowed !important; pointer-events: none !important; filter: grayscale(1); }
+        .create-apps-link {
+            color: #d9b8ff !important;
+            border: 1px solid rgba(187, 0, 255, .34) !important;
+            background: linear-gradient(135deg, rgba(187, 0, 255, .15), rgba(92, 45, 145, .06)) !important;
+            box-shadow: inset 0 0 22px rgba(187, 0, 255, .08), 0 8px 26px rgba(0, 0, 0, .22);
+        }
+        .create-apps-link:hover { border-color: #bb00ff !important; color: #fff !important; box-shadow: inset 0 0 26px rgba(187, 0, 255, .18), 0 0 20px rgba(187, 0, 255, .12); }
+        .tutorial-nav-item { color: #9feeff; }
+        .tutorial-mobile-btn { right: 68px !important; }
+        #tutorial-overlay { position:fixed; inset:0; z-index:8000; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(0,0,0,.88); backdrop-filter:blur(18px); }
+        .tutorial-modal { width:min(960px,96vw); max-height:92vh; overflow:hidden; border:1px solid rgba(var(--accent-rgb),.38); border-radius:24px; background:linear-gradient(145deg,rgba(18,18,22,.98),rgba(7,7,9,.98)); box-shadow:0 28px 90px #000, inset 0 0 55px rgba(var(--accent-rgb),.05); }
+        .tutorial-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px 24px 16px; }
+        .tutorial-kicker { color:var(--accent-color); font-size:.62rem; letter-spacing:2.5px; font-weight:900; margin-bottom:6px; }
+        .tutorial-title { font-size:clamp(1.35rem,3vw,2rem); margin:0; }
+        .tutorial-copy { color:var(--text-secondary); font-size:.86rem; margin-top:6px; line-height:1.45; }
+        .tutorial-close { border:1px solid var(--glass-border); background:rgba(255,255,255,.04); color:#fff; border-radius:50%; width:36px; height:36px; cursor:pointer; flex:0 0 auto; }
+        .tutorial-image-wrap { margin:0 24px; height:min(54vh,540px); border:1px solid var(--glass-border); border-radius:17px; overflow:hidden; background:#080808; display:flex; align-items:center; justify-content:center; }
+        #tutorial-image { width:100%; height:100%; object-fit:contain; display:block; }
+        .tutorial-footer { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 24px 22px; }
+        .tutorial-dots { display:flex; gap:7px; }
+        .tutorial-dot { width:7px; height:7px; border-radius:50%; border:0; background:rgba(255,255,255,.2); padding:0; }
+        .tutorial-dot.active { width:24px; border-radius:8px; background:var(--accent-color); box-shadow:0 0 12px var(--accent-glow); }
+        .tutorial-actions { display:flex; gap:9px; }
+        .tutorial-actions button { border-radius:11px; padding:10px 17px; font-size:.72rem; font-weight:900; cursor:pointer; }
+        #tutorial-prev { color:#fff; border:1px solid var(--glass-border); background:transparent; }
+        #tutorial-next { color:#000; border:0; background:var(--accent-color); }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 3000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--glass-border); border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s infinite linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .sync-status { margin-top: 12px; color: var(--text-secondary); font-size: .66rem; letter-spacing: 1.4px; font-weight: 800; min-height: 1em; }
+        .sync-status[data-state="ok"] { color: #67e8a5; }
+        .sync-status[data-state="error"] { color: #ff6b7d; }
+
+        #runner-overlay {
+            position: fixed; inset: 0; z-index: 7000; display: none; background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(18px); flex-direction: column;
+        }
+        .runner-bar {
+            height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+            padding: 0 18px; border-bottom: 1px solid var(--glass-border); background: rgba(10,10,14,0.78);
+        }
+        .runner-title { font-weight: 900; letter-spacing: 1px; color: #fff; font-size: 0.82rem; }
+        .runner-status { color: var(--text-secondary); font-size: 0.72rem; margin-left: 10px; }
+        .runner-actions { display: flex; gap: 8px; align-items: center; }
+        .runner-actions button, .config-grid button {
+            border: 1px solid var(--glass-border); background: rgba(255,255,255,0.06); color: #fff;
+            border-radius: 10px; padding: 9px 12px; cursor: pointer; font-weight: 800; font-size: 0.72rem;
+        }
+        .runner-actions button:hover, .config-grid button:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        #app-runner-frame { flex: 1; width: 100%; border: 0; background: #080a10; }
+        .auth-panel {
+            border: 1px solid var(--glass-border); border-radius: 14px; padding: 14px; margin-top: 14px;
+            background: rgba(255,255,255,0.04); text-align: left;
+        }
+        .config-grid { display: grid; gap: 10px; margin-top: 10px; }
+        .config-grid label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 2px; font-weight: 900; text-transform: uppercase; }
+        .config-grid input {
+            width: 100%; border: 1px solid var(--glass-border); border-radius: 10px; background: rgba(0,0,0,0.42);
+            color: #fff; padding: 10px; box-sizing: border-box;
+        }
+        .toggle-row { display: flex; gap: 8px; align-items: center; font-size: 0.78rem; color: var(--text-secondary); }
+        .swatch-fallback {
+            width: 110px; height: 110px; border-radius: 50%; display: block; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.18); background:
+            radial-gradient(circle at 50% 40%, var(--wrap-color), transparent 34%),
+            radial-gradient(circle at 50% 58%, rgba(255,255,255,0.28), transparent 35%),
+            #080a10;
+        }
+
+        /* --- MOBILE FIXES --- */
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; }
+            aside {
+                position: fixed;
+                bottom: 0; left: 0; width: 100%; height: auto;
+                background: rgba(10,10,10,0.95);
+                backdrop-filter: blur(25px);
+                border-top: 1px solid var(--glass-border);
+                padding: 10px 5px;
+                display: flex !important;
+                flex-direction: row !important; /* Forzar horizontal */
+                justify-content: space-around;
+                align-items: center;
+                z-index: 5000;
+            }
+            .nav-item { padding: 5px !important; gap: 4px !important; flex: 1; flex-direction: column !important; justify-content: center; align-items: center; border: none !important; background: transparent !important; }
+            .nav-item i { width: 22px !important; height: 22px !important; margin: 0 !important; }
+            .nav-label { font-size: 0.6rem !important; font-weight: 700 !important; margin-top: 2px !important; text-transform: uppercase; }
+
+            .btn-create i, .btn-create span { color: #00ff88 !important; }
+            .btn-store i, .btn-store span { color: #bb00ff !important; }
+            .btn-todos i, .btn-todos span { color: #ffffff !important; }
+            .btn-cats i, .btn-cats span { color: #ffaa00 !important; }
+
+            .sidebar-header, aside > .category-section, aside > .user-section { display: none !important; }
+            .settings-gear-btn { top: 20px !important; right: 20px !important; width: 35px !important; height: 35px !important; display: flex !important; left: auto !important;}
+            .tutorial-mobile-btn { right:68px !important; }
+            .settings-gear-btn i { width: 16px !important; }
+            #tutorial-overlay { padding:10px; }
+            .tutorial-modal { max-height:96vh; border-radius:19px; }
+            .tutorial-top { padding:17px 17px 12px; }
+            .tutorial-copy { font-size:.76rem; }
+            .tutorial-image-wrap { margin:0 12px; height:48vh; }
+            .tutorial-footer { padding:15px 16px 17px; }
+            
+            .sticky-header-wrap {
+                width: calc(100% + 40px); margin: -3vh -20px 5px -20px;
+                padding: 10px 20px; background: linear-gradient(180deg, var(--bg-color) 80%, transparent);
+                gap: 2px; border: none; align-items: center;
+            }
+            .hub-title-hero { font-size: 2.2rem; letter-spacing: 1px !important; }
+            .app-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; width: 100%;}
+            .app-card { padding: 8px !important; border-radius: 12px !important; }
+            .app-card h3 { font-size: 0.55rem !important; }
+            .main-header { text-align: center; width: 100%; margin-bottom: 2px; }
+            .main-header h1 { font-size: clamp(1.8rem, 8vw, 2.3rem) !important; margin: 0 !important; }
+            .main-header p { font-size: 0.5rem !important; margin: 0 !important; letter-spacing: 2px !important; }
+            
+            .mobile-categories {
+                display: flex; gap: 6px; align-items: center; justify-content: flex-start; width: 100%; margin-top: -2px;
+            }
+            .cat-pill-subtle {
+                padding: 6px 14px; border-radius: 15px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+                color: var(--text-secondary); font-size: 0.65rem; font-weight: 600; cursor: pointer;
+            }
+            .cat-pill-subtle.active { background: rgba(255,255,255,0.08); color: #fff; }
+            
+            .btn-cat-dropdown {
+                padding: 6px 14px; border-radius: 15px; background: var(--accent-glow); border: 1px solid var(--accent-color);
+                color: #fff; font-size: 0.65rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            }
+            
+            #cat-dropdown-menu {
+                position: fixed; bottom: 85px; right: 10px;
+                width: 200px; background: rgba(15,15,15,0.98); backdrop-filter: blur(30px); border: 1px solid var(--glass-border);
+                border-radius: 16px; z-index: 99999 !important; padding: 10px;
+                display: none; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
+            }
+            .dropdown-item { padding: 8px 12px; font-size: 0.75rem; color: #fff; border-radius: 8px; display: flex; align-items: center; flex-direction: row; gap: 10px; cursor: pointer; }
+            .dropdown-item:active { background: rgba(255,255,255,0.05); }
+
+            .selected-cat-title {
+                text-align: center; font-size: 0.7rem; font-weight: 800; color: var(--accent-color); text-transform: uppercase;
+                letter-spacing: 3px; margin: 5px 0 0 0; width: 100%; display: none;
+            }
+
+
+            /* Mobile Landing Adjustments para un pantallazo */
+            #view-landing h1 { font-size: 2.2rem !important; }
+            #view-landing .brand { margin-bottom: 3vh !important; }
+            #view-landing { padding-top: 5vh; }
+            .pricing-section {
+                flex-direction: row; flex-wrap: nowrap; overflow-x: auto; 
+                justify-content: flex-start; scroll-snap-type: x mandatory; padding: 10px 20vw 30px 20px; margin-top: 30px;
+                scrollbar-width: none; -ms-overflow-style: none; /* Hide scrollbar */
+            }
+            .pricing-section::-webkit-scrollbar { display: none; }
+            .pricing-tier { 
+                min-width: 280px; 
+                min-height: 360px; /* Reducido para no sobrepasar el borde en movil */
+                scroll-snap-align: center; 
+            }
+            
+            /* LA FORJA / SETUP - MOVIL (Evitar scroll absoluto) */
+            .swatch { width: clamp(70px, 28vw, 90px) !important; border-width: 2px !important; padding: 10px !important;}
+            .color-swatches { gap: 8px !important; padding: 5px 0 !important; margin-top: 5px !important; flex-wrap: wrap !important; justify-content: center !important;}
+            #view-setup { justify-content: center !important; overflow: hidden !important; padding: 10px !important; }
+            #view-setup h2 { font-size: 2rem !important; margin-bottom: 0px !important; margin-top: -10px !important; }
+            #view-setup p { font-size: 0.85rem !important; margin-bottom: 10px !important; }
+            #view-setup > div { padding: 15px !important; }
+            #setup-hub-name { padding: 12px !important; font-size: 1.1rem !important; margin-bottom: 10px !important; }
+            #btn-save-setup { padding: 12px 30px !important; font-size: 0.9rem !important; margin-top: 5px !important; }
+            .theme-label { font-size: 0.5rem !important; margin-top: 5px !important; }
+        }
+
+            .mobile-only { display: none !important; }
+            @media (max-width: 768px) {
+                .mobile-only { display: flex !important; }
+            }
+
+        /* Nav Login Container Desktop Default */
+        #nav-login-container { 
+            position: absolute; top: 20px; right: 80px; z-index: 100; 
+        }
+
+        @media (max-width: 768px) {
+            #nav-login-container { 
+                top: 20px; left: 20px; right: auto; 
+            }
+            .btn-nav-login { 
+                padding: 6px 16px !important; 
+                font-size: 0.6rem !important; 
+                letter-spacing: 1px !important; 
+            }
+            .google-login-btn { 
+                padding: 10px 24px !important; 
+                font-size: 0.8rem !important; 
+                margin: 10px auto 5px auto !important; 
+            }
+            .google-hint { 
+                font-size: 0.65rem !important; 
+                margin-bottom: 20px !important; 
+            }
+        }
+
+
+        .btn-nav-login {
+            background: rgba(15, 15, 15, 0.5); 
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            color: #fff; 
+            padding: 8px 24px; border-radius: 50px; font-size: 0.7rem;
+            font-weight: 800; cursor: pointer; backdrop-filter: blur(15px); transition: all 0.4s ease;
+            text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: relative; overflow: hidden;
+        }
+        .btn-nav-login::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+        .btn-nav-login:hover::before { left: 100%; }
+        .btn-nav-login:hover { 
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+            background: rgba(0, 242, 255, 0.1);
+        }
+        
+        .google-login-btn {
+            background: rgba(15, 15, 15, 0.8) !important; 
+            color: white !important; 
+            border: 1px solid rgba(255,255,255,0.1) !important; 
+            padding: 14px 32px !important; 
+            border-radius: 12px !important; 
+            font-weight: 700 !important; 
+            font-size: 0.95rem !important; 
+            display: flex !important; 
+            align-items: center !important; 
+            gap: 15px !important; 
+            cursor: pointer !important; 
+            transition: all 0.3s !important;
+            margin: 15px auto 10px auto !important; 
+            backdrop-filter: blur(20px) !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+            width: fit-content !important;
+            letter-spacing: 1px !important;
+        }
+        .google-login-btn:hover { 
+            border-color: var(--accent-color) !important;
+            box-shadow: 0 0 20px var(--accent-glow) !important;
+            transform: translateY(-3px) !important;
+        }
+        .google-login-btn img { width: 22px; height: 22px; }
+        .google-hint { font-size: 0.75rem; opacity: 0.5; font-weight: 500; margin-bottom: 30px; letter-spacing: 0.5px; }
+
+        /* Cambios funcionales del Portal: la estética base permanece intacta. */
+        .pricing-section { display: none !important; }
+        .portal-features { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; width:min(860px,100%); margin:18px auto 40px; }
+        .portal-feature { --feature-color:var(--accent-color); position:relative; overflow:hidden; padding:18px; text-align:left; background:linear-gradient(145deg,rgba(30,40,50,.62),rgba(14,14,14,.72)); border:1px solid color-mix(in srgb,var(--feature-color) 38%,rgba(255,255,255,.12)); border-radius:20px; backdrop-filter:blur(15px); box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 0 28px color-mix(in srgb,var(--feature-color) 9%,transparent); transition:.3s var(--transition); }
+        .portal-feature::after { content:''; position:absolute; width:95px; height:95px; right:-40px; top:-48px; border-radius:50%; background:var(--feature-color); opacity:.16; filter:blur(18px); }
+        .portal-feature:nth-child(2) { --feature-color:#bb00ff; }
+        .portal-feature:nth-child(3) { --feature-color:#ffaa00; }
+        .portal-feature:hover { transform:translateY(-4px); border-color:var(--feature-color); box-shadow:0 15px 38px rgba(0,0,0,.7),0 0 24px color-mix(in srgb,var(--feature-color) 18%,transparent); }
+        .portal-feature i { color:var(--feature-color); width:18px; filter:drop-shadow(0 0 8px var(--feature-color)); }
+        .portal-feature h3 { margin:12px 0 5px; font-size:.92rem; letter-spacing:.5px; }
+        .portal-feature p { color:var(--text-secondary); font-size:.72rem; line-height:1.45; }
+        .landing-brand-hero { font-family:'Space Grotesk',sans-serif; font-weight:900; letter-spacing:7px; font-size:clamp(2.2rem,5.4vw,4.4rem); line-height:.9; margin-bottom:8px; transform:translateY(-3.2vh); text-shadow:0 8px 34px rgba(0,0,0,.75); }
+        .landing-brand-hero span { color:var(--accent-color); text-shadow:0 0 28px var(--accent-glow); }
+        .landing-signature { margin:-3.2vh 0 4vh; color:rgba(255,255,255,.34); font-size:.58rem; font-weight:800; letter-spacing:3px; text-transform:uppercase; }
+        .landing-statement { font-size:clamp(2.6rem,6vw,4.2rem); line-height:1; letter-spacing:-2px; margin-bottom:10px; }
+        .landing-statement .line-one { color:#fff; }
+        .landing-statement .line-two { color:#fff; }
+        .landing-statement .accent-word { color:var(--accent-color); text-shadow:0 0 22px var(--accent-glow); }
+        .landing-copy-block { display:flex; flex-direction:column; align-items:center; width:100%; transform:translateY(-30px); }
+        .portal-field { width:100%; margin:6px 0 14px; padding:12px; border-radius:8px; background:rgba(0,0,0,.5); border:1px solid var(--glass-border); color:#fff; text-transform:none; }
+        textarea.portal-field { min-height:72px; resize:vertical; }
+        .portal-card-desc { color:var(--text-secondary); font-size:.66rem; line-height:1.35; margin-top:4px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+        .portal-empty { grid-column:1/-1; padding:45px 25px; text-align:center; border:1px dashed var(--glass-border); border-radius:20px; color:var(--text-secondary); }
+        .portal-empty i { color:var(--accent-color); width:28px; margin-bottom:12px; }
+        #view-dashboard.active { overflow:hidden; }
+        .favorite-btn { position:absolute; top:5px; right:5px; z-index:11; padding:4px; border:0; background:transparent; color:rgba(255,255,255,.3); cursor:pointer; transition:.25s; }
+        .favorite-btn.active { color:#ffaa00; filter:drop-shadow(0 0 7px rgba(255,170,0,.65)); }
+        .favorite-btn i { width:16px; fill:transparent; }
+        .favorite-btn.active i { fill:currentColor; }
+        .mobile-portal-nav { display:none; }
+        aside { padding-top:30px; }
+        aside .desktop-actions { margin-top:12px !important; }
+        aside .category-section { margin-top:10px; }
+        @media(max-width:768px){ .portal-features{grid-template-columns:1fr; width:min(420px,92%); margin-top:8px; gap:9px}.portal-feature{padding:13px 15px}.portal-feature p{display:none}#view-landing{overflow-y:auto!important;padding-top:42px!important}.landing-copy-block{transform:translateY(-18px)}.landing-brand-hero{font-size:clamp(2rem,11vw,3rem);letter-spacing:5px;transform:translateY(-10px)}.landing-signature{margin:-10px 0 24px}.landing-statement{font-size:2.25rem!important} }
+        @media(max-width:768px){
+            #view-dashboard main { padding-bottom:90px; }
+            #view-dashboard .sticky-header-wrap { position:sticky; top:0; z-index:4000; }
+            aside > .desktop-actions { display:none !important; }
+            aside > .mobile-portal-nav { display:grid !important; grid-template-columns:repeat(4,1fr); width:100%; gap:2px; }
+            .mobile-portal-nav .nav-item { min-width:0; }
+            .mobile-portal-nav .mobile-add i,.mobile-portal-nav .mobile-add span{color:#00ff88!important}
+            .mobile-portal-nav .mobile-favorites i,.mobile-portal-nav .mobile-favorites span{color:#bb00ff!important}
+            .mobile-portal-nav .mobile-categories-button i,.mobile-portal-nav .mobile-categories-button span{color:#ffaa00!important}
+            .portal-card-desc { display:none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-mesh"></div>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <!-- VIEW: LANDING -->
+    <section id="view-landing" class="view">
+        <div class="landing-copy-block">
+        <div class="landing-brand-hero">INNOVA<span>HUB</span></div>
+        <div class="landing-signature">BY DR. ENGELS VICIOSO</div>
+        <h1 class="landing-statement">
+            <span class="line-one" data-i18n="land_title_1">Tu <span class="accent-word">espacio.</span> Tus apps.</span><br>
+            <span class="line-two" data-i18n="land_title_2">Tu propio <span class="accent-word">ecosistema.</span></span>
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.05rem; max-width: 580px; margin: 0 auto 15px auto; line-height: 1.4; font-weight: 500;" data-i18n="land_desc">
+            Reúne las aplicaciones, herramientas y proyectos que creas en cualquier plataforma. Un único acceso, organizado a tu manera y <strong style="color: var(--accent-color);">bajo tus reglas</strong>.
+        </p>
+        
+        <button id="btn-login" class="google-login-btn" onclick="signIn()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> 
+            <span data-i18n="btn_google">ENTRAR CON GOOGLE</span>
+        </button>
+        <p class="google-hint" data-i18n="google_hint">Sin registros complejos. Solo tu cuenta.</p>
+        </div>
+
+        <div class="portal-features" aria-label="Funciones principales">
+            <div class="portal-feature"><i data-lucide="link-2"></i><h3>REÚNE TUS APPS</h3><p>Guarda enlaces de AI Studio, Canvas, GitHub o cualquier otra plataforma.</p></div>
+            <div class="portal-feature"><i data-lucide="layers"></i><h3>ORDENA TU ECOSISTEMA</h3><p>Agrupa tus herramientas por categorías y encuentra cada una al instante.</p></div>
+            <div class="portal-feature"><i data-lucide="palette"></i><h3>HAZLO TUYO</h3><p>Elige el nombre y el ADN visual de tu hub personal.</p></div>
+        </div>
+
+    </section>
+
+    <!-- VIEW: SETUP -->
+    <section id="view-setup" class="view" style="flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow-y: auto; padding: 50px 20px;">
+        <h2 style="font-size: 3rem; font-weight: 900; margin-bottom: 5px;" data-i18n="setup_title">Forja tu <span style="color: var(--accent-color); text-shadow: 0 0 20px var(--accent-glow);">Ecosistema</span></h2>
+        <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 1.1rem;" data-i18n="setup_desc">Nombra tu Hub y selecciona el adn visual de tu dashboard de control operativo.</p>
+        <div style="background: var(--surface); border: 1px solid var(--glass-border); padding: 40px; border-radius: 30px; width: 90%; max-width: 900px; text-align: left;">
+            <label style="font-size: 0.6rem; letter-spacing: 3px; color: var(--text-secondary); font-weight: 900; display:block; margin-bottom:10px;" data-i18n="setup_name_label">NOMBRE DE TU ESPACIO PIONERO</label>
+            <input type="text" id="setup-hub-name" autocomplete="off" placeholder="Ej: Nexus Core, Operation Alpha..." data-i18n="setup_name_placeholder" style="font-size: 1.8rem; text-align: center; padding: 20px; font-weight: 800; border-radius: 15px; margin-bottom: 30px; width:100%; background: rgba(0,0,0,0.5); color: #fff;">
+            
+            <label style="font-size: 0.6rem; letter-spacing: 3px; color: var(--text-secondary); font-weight: 900; display: block; margin-top: 10px;" data-i18n="setup_style_label">SELECCIONA UNA ESTÉTICA ALQUIMISTA</label>
+            <div class="color-swatches" id="color-picker">
+                <div class="swatch-wrap" style="--wrap-color: #00f2ff;">
+                    <div class="swatch swatch-fallback" data-color="#00f2ff" aria-label="Cyan Core"></div>
+                    <div class="theme-label" style="font-size: 0.7rem; letter-spacing: 2px; margin-top: 10px; font-weight: 800; color: var(--text-secondary); transition: 0.3s;">CYAN CORE</div>
+                </div>
+                <div class="swatch-wrap" style="--wrap-color: #ffaa00;">
+                    <div class="swatch swatch-fallback" data-color="#ffaa00" aria-label="Amber Forge"></div>
+                    <div class="theme-label" style="font-size: 0.7rem; letter-spacing: 2px; margin-top: 10px; font-weight: 800; color: var(--text-secondary); transition: 0.3s;">AMBER FORGE</div>
+                </div>
+                <div class="swatch-wrap" style="--wrap-color: #ff0055;">
+                    <div class="swatch swatch-fallback" data-color="#ff0055" aria-label="Crimson Sith"></div>
+                    <div class="theme-label" style="font-size: 0.7rem; letter-spacing: 2px; margin-top: 10px; font-weight: 800; color: var(--text-secondary); transition: 0.3s;">CRIMSON SITH</div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn-primary" id="btn-save-setup" style="padding: 20px 50px; font-size: 1.2rem; border-radius: 30px;" data-i18n="setup_init_btn">INICIALIZAR HUB</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIEW: DASHBOARD -->
+    <section id="view-dashboard" class="view">
+        <div class="dashboard-container">
+            <aside>
+                <div class="sidebar-header" style="font-family: 'Space Grotesk'; font-weight: 900; letter-spacing: 2px; font-size: 0.8rem;">INNOVA<span style="color:var(--accent-color)">HUB</span></div>
+                <div class="desktop-actions" style="display: flex; flex-direction: column; gap: 8px; margin-top: 20px;">
+                    <div class="nav-item action create-apps-link" role="link" tabindex="0" onclick="window.openGemCreator()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.openGemCreator();}">
+                        <i data-lucide="sparkles" style="width: 16px;"></i>
+                        <span class="nav-label">Crear apps</span>
+                    </div>
+                    <div class="nav-item action" id="btn-open-creator">
+                        <i data-lucide="plus-circle" style="width: 16px;"></i>
+                        <span class="nav-label">Añadir app</span>
+                    </div>
+                </div>
+
+                <div class="mobile-portal-nav">
+                    <div class="nav-item mobile-add" onclick="window.openPortalAppForm()"><i data-lucide="plus-circle"></i><span class="nav-label">Añadir</span></div>
+                    <div class="nav-item" onclick="window.selectPortalCategory('todos')"><i data-lucide="layout-grid"></i><span class="nav-label">Todos</span></div>
+                    <div class="nav-item mobile-favorites" onclick="window.selectPortalCategory('favoritos')"><i data-lucide="star"></i><span class="nav-label">Favoritos</span></div>
+                    <div class="nav-item mobile-categories-button" onclick="window.togglePortalCategories(event)"><i data-lucide="layers"></i><span class="nav-label">Categorías</span></div>
+                </div>
+
+                <div class="category-section">
+                    <div class="category-header" data-i18n="cat_header">ORGANIZACIÓN</div>
+                    <div class="cat-item" style="background: rgba(255,255,255,0.05); color:#fff;">
+                        <div class="cat-dot" style="background: #fff;"></div> <span data-i18n="cat_all">Todos</span>
+                    </div>
+                    <!-- Future categories rendered here -->
+                    <div class="cat-item" style="opacity: 0.5; font-style: italic;" onclick="document.getElementById('category-overlay').style.display='flex'">
+                        <i data-lucide="plus" style="width: 12px;"></i> <span data-i18n="cat_add">Añadir categoría</span>
+                    </div>
+                </div>
+
+                <div class="user-section" style="margin-top: auto; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                    <div class="nav-item tutorial-nav-item" onclick="window.openTutorial()">
+                        <i data-lucide="circle-help" style="width: 18px;"></i>
+                        <span class="nav-label">Tutorial</span>
+                    </div>
+                    <div class="nav-item" onclick="openUserOptions()">
+                        <i data-lucide="settings" style="width: 18px;"></i>
+                        <span class="nav-label" data-i18n="settings_title_brief">Ajustes</span>
+                    </div>
+                </div>
+            </aside>
+            <main>
+                <div class="sticky-header-wrap">
+                    <button class="settings-gear-btn mobile-only tutorial-mobile-btn" onclick="window.openTutorial()" aria-label="Abrir tutorial">
+                        <i data-lucide="circle-help" style="width: 16px;"></i>
+                    </button>
+                    <div class="settings-gear-btn mobile-only" onclick="openUserOptions()">
+                        <i data-lucide="settings" style="width: 16px;"></i>
+                    </div>
+                    <div class="main-header">
+                        <h1 class="hub-title-hero" id="hub-title-display" data-i18n="hub_title">Hub</h1>
+                        <p style="opacity: 0.42; font-size: 0.65rem; letter-spacing: 3px; font-weight: 800; text-transform: uppercase; margin-top: 8px;">BY DR. ENGELS VICIOSO</p>
+                    </div>
+
+                    <div class="top-action-bar" style="width: 100%; max-width: 900px; margin: 0; display: flex; flex-direction: column; gap: 10px; position: relative;">
+                        <div style="position: relative; width: 100%;">
+                            <i data-lucide="search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); width: 14px;"></i>
+                            <input type="text" placeholder="Buscar herramientas..." data-i18n="search_placeholder" style="width: 100%; background: rgba(20,20,20,0.5); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 10px 10px 40px; color: #fff; outline: none; transition: 0.3s; font-size: 0.8rem;">
+                        </div>
+                    </div>
+
+                    <div class="selected-cat-title" id="mobile-selected-title"></div>
+                </div>
+                <div class="app-grid" id="main-apps-container"></div>
+            </main>
+        </div>
+    </section>
+
+    <!-- CREATOR MODAL -->
+    <div id="creator-overlay">
+        <div class="modal">
+            <h2 id="app-form-title" style="font-size: 1.5rem;">Añadir App</h2>
+            <p style="font-size:0.74rem; color:var(--text-secondary); margin: -4px 0 14px;">Comparte el enlace de una app creada en cualquier plataforma.</p>
+            <input id="portal-app-name" class="portal-field" maxlength="48" placeholder="Nombre de la app">
+            <input id="portal-app-url" class="portal-field" inputmode="url" placeholder="https://...">
+            <textarea id="portal-app-description" class="portal-field" maxlength="140" placeholder="Descripción breve"></textarea>
+            <label for="portal-app-category" style="display:block;font-size:.62rem;letter-spacing:2px;color:var(--text-secondary);font-weight:900;margin:2px 0 6px;">CATEGORÍA</label>
+            <select id="portal-app-category" class="portal-field"></select>
+            <input id="portal-app-color" class="portal-field" type="color" value="#00f2ff" aria-label="Color de la app">
+            <div style="display: flex; gap: 15px;">
+                <button class="btn-primary" id="btn-process-magic">GUARDAR</button>
+                <button id="btn-delete-app" style="display:none; flex:1; background:rgba(255,50,50,.08); color:#ff5555; border:1px solid rgba(255,80,80,.25); border-radius:12px; cursor:pointer;">ELIMINAR</button>
+                <button style="flex: 1; background: transparent; color: #fff; border: 1px solid #333; border-radius: 12px; cursor: pointer;" onclick="closeCreator()" data-i18n="btn_cancel">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUB SETTINGS OVERLAY (Global & Categorizado) -->
+    <div id="user-options-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
+        
+        <!-- MENU PRINCIPAL DE AJUSTES -->
+        <div class="modal" id="settings-main-menu" style="width: 320px; text-align: center;">
+            <h3 style="margin-bottom: 25px; letter-spacing: -1px;" data-i18n="settings_title">AJUSTES DEL HUB</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-primary" id="btn-personalize-global" onclick="window.showForgeEdit()" style="padding:15px;">PERSONALIZAR HUB</button>
+                <div id="sync-status" class="sync-status" data-state="ok">SINCRONIZADO CON GOOGLE DRIVE</div>
+                <button id="btn-sign-out" style="background:transparent;border:1px solid var(--glass-border);color:#fff;border-radius:12px;padding:12px;cursor:pointer;font-size:.76rem;">CERRAR SESIÓN</button>
+                <p style="color:var(--text-secondary);font-size:.62rem;line-height:1.45;margin:-4px 8px 0;">Tu permiso de Drive se conserva para que puedas volver sin autorizarlo de nuevo.</p>
+                <button style="background: transparent; border: 1px solid var(--glass-border); color: #fff; border-radius: 12px; padding: 12px; cursor: pointer; margin-top: 10px; font-size: 0.8rem; opacity: 0.6;" onclick="document.getElementById('user-options-overlay').style.display = 'none'" data-i18n="btn_close">Cerrar</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- TUTORIAL VISUAL -->
+    <div id="tutorial-overlay" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+        <div class="tutorial-modal">
+            <div class="tutorial-top">
+                <div>
+                    <div class="tutorial-kicker" id="tutorial-kicker">PASO 1 DE 4</div>
+                    <h2 class="tutorial-title" id="tutorial-title">Crea tu aplicación</h2>
+                    <p class="tutorial-copy" id="tutorial-copy">Pulsa Crear apps y cuéntale al asistente qué necesitas. Puedes explicarlo con tus propias palabras.</p>
+                </div>
+                <button class="tutorial-close" onclick="window.closeTutorial()" aria-label="Cerrar tutorial">×</button>
+            </div>
+            <div class="tutorial-image-wrap"><img id="tutorial-image" src="tutorial-assets/01-crear-app.png" alt="Creación de una aplicación con InnovaHub Apps Creator"></div>
+            <div class="tutorial-footer">
+                <div class="tutorial-dots" id="tutorial-dots" aria-label="Progreso del tutorial"></div>
+                <div class="tutorial-actions">
+                    <button id="tutorial-prev" onclick="window.changeTutorialStep(-1)">ANTERIOR</button>
+                    <button id="tutorial-next" onclick="window.changeTutorialStep(1)">SIGUIENTE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY MODAL -->
+    <div id="category-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
+        <div class="modal" style="width: 350px;">
+            <h3 data-i18n="modal_new_cat_title">Nueva Categoría</h3>
+            <input type="text" id="new-cat-name" placeholder="Nombre de categoría" data-i18n="modal_new_cat_placeholder" style="width: 100%; margin: 15px 0; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: #fff;">
+            <p style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 5px;" data-i18n="modal_new_cat_color">Elige un color visual:</p>
+            <div id="new-cat-palette" style="display: flex; gap: 15px; margin-bottom: 20px; justify-content: center;">
+                <div class="preset-cat-color" style="width: 24px; height: 24px; border-radius: 50%; background: #00f2ff; cursor: pointer; border: 2px solid #fff;" onclick="document.getElementById('new-cat-color').value='#00f2ff'; document.querySelectorAll('.preset-cat-color').forEach(n=>n.style.borderColor='transparent'); this.style.borderColor='#ffffff';"></div>
+                <div class="preset-cat-color" style="width: 24px; height: 24px; border-radius: 50%; background: #bb00ff; cursor: pointer; border: 2px solid transparent;" onclick="document.getElementById('new-cat-color').value='#bb00ff'; document.querySelectorAll('.preset-cat-color').forEach(n=>n.style.borderColor='transparent'); this.style.borderColor='#ffffff';"></div>
+                <div class="preset-cat-color" style="width: 24px; height: 24px; border-radius: 50%; background: #ff0055; cursor: pointer; border: 2px solid transparent;" onclick="document.getElementById('new-cat-color').value='#ff0055'; document.querySelectorAll('.preset-cat-color').forEach(n=>n.style.borderColor='transparent'); this.style.borderColor='#ffffff';"></div>
+                <div class="preset-cat-color" style="width: 24px; height: 24px; border-radius: 50%; background: #00ff88; cursor: pointer; border: 2px solid transparent;" onclick="document.getElementById('new-cat-color').value='#00ff88'; document.querySelectorAll('.preset-cat-color').forEach(n=>n.style.borderColor='transparent'); this.style.borderColor='#ffffff';"></div>
+                <div class="preset-cat-color" style="width: 24px; height: 24px; border-radius: 50%; background: #ffaa00; cursor: pointer; border: 2px solid transparent;" onclick="document.getElementById('new-cat-color').value='#ffaa00'; document.querySelectorAll('.preset-cat-color').forEach(n=>n.style.borderColor='transparent'); this.style.borderColor='#ffffff';"></div>
+            </div>
+            <input type="hidden" id="new-cat-color" value="#00f2ff">
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" onclick="saveCategory()" data-i18n="btn_add">Añadir</button>
+                <button style="flex: 1; background: transparent; border: 1px solid var(--glass-border); color: #fff; border-radius: 12px; padding: 12px; cursor: pointer;" onclick="document.getElementById('category-overlay').style.display = 'none'" data-i18n="btn_cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENU DE CATEGORIAS MOVIL -->
+    <div id="cat-dropdown-menu"></div>
+
+    <!-- El motor original queda fuera de esta copia: este Hub publica enlaces. -->
+    <!-- SCRIPT LIMPIO (Sin dependencias externas que bloqueen) -->
+    <script src="app.js"></script>
+    <script>
+        // Init icons for the new modal after script load
+        setTimeout(() => lucide.createIcons(), 100);
+    </script>
+</body>
+</html>

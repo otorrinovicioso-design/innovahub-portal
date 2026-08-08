@@ -1,0 +1,10 @@
+{
+  "name": "innovahub-portal",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "lint": "node --check app.js && node --check server.js",
+    "test": "node tests/local-check.js"
+  }
+}
