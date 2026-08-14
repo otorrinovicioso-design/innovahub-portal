@@ -36,4 +36,7 @@ if (!html.includes('landing-brand-hero') || !html.includes('accent-word')) throw
 if (!html.includes('landing-copy-block')) throw new Error('Falta el desplazamiento independiente de la portada');
 if (/gemini-motor\.js|firebase-config\.js|legacy-innova-script/.test(html)) throw new Error('Quedan dependencias activas del motor original');
 if (/pricing-tier[\s\S]*data-plan=/.test(html)) throw new Error('Quedan tarjetas de precios en la landing');
+['btn-paste-app-link', 'fillAppFromClipboard', 'navigator.clipboard.readText', '/api/metadata'].forEach((token) => {
+    if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta autocompletado desde portapapeles: ${token}`);
+});
 console.log('OK: estructura de InnovaHub Portal validada');

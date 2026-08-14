@@ -344,7 +344,45 @@ function fillCategorySelect(selected) {
         + state.categories.map((category) => `<option value="${category.id}" ${category.id === selected ? 'selected' : ''}>${escapeHTML(category.name)}</option>`).join('')
         + '<option value="__new__">＋ CREAR NUEVA CATEGORÍA</option>';
 }
-function openAppForm(appId = null) {
+function setAppLinkStatus(message = '', type = '') {
+    const status = byId('app-link-status');
+    status.textContent = message;
+    status.style.display = message ? 'block' : 'none';
+    status.style.color = type === 'success' ? 'var(--accent)' : type === 'error' ? '#ff7777' : 'var(--text-secondary)';
+}
+
+function shortDescription(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).slice(0, 3).join(' ').replace(/[.,;:!?]+$/, '');
+}
+
+async function fillAppFromClipboard({ quiet = false } = {}) {
+    if (!navigator.clipboard?.readText) {
+        if (!quiet) setAppLinkStatus('Pega el enlace manualmente.', 'error');
+        return;
+    }
+    try {
+        const url = safeUrl(await navigator.clipboard.readText());
+        if (!url) {
+            if (!quiet) setAppLinkStatus('No hay un enlace válido copiado.', 'error');
+            return;
+        }
+        byId('portal-app-url').value = url;
+        setAppLinkStatus('Enlace detectado. Completando datos…');
+        try {
+            const response = await fetch(`/api/metadata?url=${encodeURIComponent(url)}`);
+            const metadata = response.ok ? await response.json() : {};
+            if (!byId('portal-app-name').value && metadata.title) byId('portal-app-name').value = metadata.title.slice(0, 48);
+            if (!byId('portal-app-description').value && metadata.description) byId('portal-app-description').value = shortDescription(metadata.description).slice(0, 140);
+        } catch (error) {
+            console.info('No se pudieron leer los metadatos del enlace.', error);
+        }
+        setAppLinkStatus('Enlace añadido automáticamente.', 'success');
+    } catch {
+        if (!quiet) setAppLinkStatus('El navegador no permitió leerlo. Puedes pegarlo manualmente.', 'error');
+    }
+}
+
+async function openAppForm(appId = null) {
     editingAppId = appId;
     const app = state.apps.find((entry) => entry.id === appId);
     byId('app-form-title').textContent = app ? 'Editar App' : 'Añadir App';
@@ -354,8 +392,11 @@ function openAppForm(appId = null) {
     byId('portal-app-color').value = safeColor(app?.color, state.accent);
     byId('btn-delete-app').style.display = app ? 'block' : 'none';
     fillCategorySelect(app?.categoryId || state.categories[0]?.id);
+    setAppLinkStatus();
     byId('creator-overlay').style.display = 'flex';
+    if (!app) await fillAppFromClipboard({ quiet:true });
 }
+byId('btn-paste-app-link').onclick = () => fillAppFromClipboard();
 window.closeCreator = () => { byId('creator-overlay').style.display = 'none'; editingAppId = null; };
 byId('btn-process-magic').onclick = () => {
     const name = byId('portal-app-name').value.trim();

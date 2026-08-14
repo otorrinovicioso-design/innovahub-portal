@@ -800,7 +800,13 @@
             <h2 id="app-form-title" style="font-size: 1.5rem;">Añadir App</h2>
             <p style="font-size:0.74rem; color:var(--text-secondary); margin: -4px 0 14px;">Comparte el enlace de una app creada en cualquier plataforma.</p>
             <input id="portal-app-name" class="portal-field" maxlength="48" placeholder="Nombre de la app">
-            <input id="portal-app-url" class="portal-field" inputmode="url" placeholder="https://...">
+            <div style="display:flex;gap:8px;align-items:stretch;">
+                <input id="portal-app-url" class="portal-field" inputmode="url" placeholder="https://..." style="flex:1;min-width:0;">
+                <button type="button" id="btn-paste-app-link" title="Leer el enlace copiado" aria-label="Usar enlace copiado" style="margin-bottom:12px;padding:0 13px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:var(--accent);cursor:pointer;">
+                    <i data-lucide="clipboard-paste" style="width:17px;"></i>
+                </button>
+            </div>
+            <p id="app-link-status" aria-live="polite" style="display:none;margin:-5px 0 11px;font-size:.65rem;color:var(--text-secondary);"></p>
             <textarea id="portal-app-description" class="portal-field" maxlength="140" placeholder="Descripción breve"></textarea>
             <label for="portal-app-category" style="display:block;font-size:.62rem;letter-spacing:2px;color:var(--text-secondary);font-weight:900;margin:2px 0 6px;">CATEGORÍA</label>
             <select id="portal-app-category" class="portal-field"></select>
