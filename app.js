@@ -372,7 +372,8 @@ async function fillAppFromClipboard({ quiet = false } = {}) {
             const response = await fetch(`/api/metadata?url=${encodeURIComponent(url)}`);
             const metadata = response.ok ? await response.json() : {};
             if (!byId('portal-app-name').value && metadata.title) byId('portal-app-name').value = metadata.title.slice(0, 48);
-            if (!byId('portal-app-description').value && metadata.description) byId('portal-app-description').value = shortDescription(metadata.description).slice(0, 140);
+            const suggestedDescription = metadata.description || metadata.title || '';
+            if (!byId('portal-app-description').value && suggestedDescription) byId('portal-app-description').value = shortDescription(suggestedDescription).slice(0, 140);
         } catch (error) {
             console.info('No se pudieron leer los metadatos del enlace.', error);
         }

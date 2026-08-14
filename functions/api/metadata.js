@@ -43,9 +43,10 @@ export async function onRequestGet(context) {
         const html = (await response.text()).slice(0, 1000000);
         const rawTitle = metaContent(html, 'og:title') || metaContent(html, 'twitter:title') || decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]);
         const rawDescription = metaContent(html, 'og:description') || metaContent(html, 'description') || metaContent(html, 'twitter:description');
-        const title = rawTitle.replace(/\s*[|–—-]\s*(Gemini|Google Gemini)\s*$/i, '').trim();
-        const generic = /^(gemini|google|sign in|iniciar sesi[oó]n)$/i.test(title);
-        return json({ title:generic ? '' : title.slice(0, 80), description:rawDescription.slice(0, 240) });
+        const title = rawTitle.replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '').replace(/\s*[|–—-]\s*(Gemini|Google Gemini)\s*$/i, '').trim();
+        const genericTitle = /^(gemini|google|google gemini|sign in|iniciar sesi[oó]n)$/i.test(title);
+        const genericDescription = /gemini,? google.?s ai assistant|asistente de ia de google/i.test(rawDescription);
+        return json({ title:genericTitle ? '' : title.slice(0, 80), description:genericDescription ? '' : rawDescription.slice(0, 240) });
     } catch {
         return json({ title:'', description:'' });
     } finally {
