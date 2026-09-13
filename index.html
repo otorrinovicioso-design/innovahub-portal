@@ -816,13 +816,15 @@
             </div>
             <p id="app-link-status" aria-live="polite" style="display:none;margin:-5px 0 11px;font-size:.65rem;color:var(--text-secondary);"></p>
             <label for="portal-app-icon-url" style="display:block;font-size:.62rem;letter-spacing:2px;color:var(--text-secondary);font-weight:900;margin:2px 0 6px;">ICONO PERSONALIZADO · OPCIONAL</label>
-            <p style="font-size:.65rem;color:var(--text-secondary);margin:-1px 0 6px;line-height:1.4;">Usaremos el icono de la web automáticamente. También puedes pegar aquí una imagen o un enlace compartido de Gemini.</p>
+            <p style="font-size:.65rem;color:var(--text-secondary);margin:-1px 0 6px;line-height:1.4;">Usaremos el icono de la web automáticamente. Para uno propio, pega una imagen o enlace directo; si Gemini solo ofrece una página compartida, descarga la imagen y elígela aquí.</p>
             <div style="display:flex;gap:8px;align-items:stretch;">
                 <input id="portal-app-icon-url" class="portal-field" inputmode="url" placeholder="Enlace de la imagen o de Gemini" style="flex:1;min-width:0;">
                 <button type="button" id="btn-paste-app-icon" title="Usar el enlace de imagen copiado" aria-label="Usar enlace de imagen copiado" style="margin-bottom:14px;padding:0 13px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:var(--accent);cursor:pointer;">
                     <i data-lucide="image-plus" style="width:17px;"></i>
                 </button>
             </div>
+            <input id="portal-app-icon-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <button type="button" id="btn-choose-app-icon" style="width:100%;margin:-4px 0 10px;padding:9px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.035);color:#fff;cursor:pointer;font-size:.66rem;font-weight:800;letter-spacing:.7px;"><i data-lucide="upload" style="width:14px;vertical-align:middle;margin-right:6px;"></i>ELEGIR IMAGEN</button>
             <p id="app-icon-status" aria-live="polite" style="display:none;margin:-5px 0 9px;font-size:.65rem;color:var(--text-secondary);"></p>
             <div id="app-icon-preview" class="app-icon-preview"></div>
             <textarea id="portal-app-description" class="portal-field" maxlength="140" placeholder="Descripción breve"></textarea>

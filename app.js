@@ -18,6 +18,7 @@ const DEFAULT_STATE = {
 let state = loadState();
 let selectedColor = state.accent;
 let editingAppId = null;
+let pendingIconDataUrl = '';
 let setupFromDashboard = false;
 let categoryCreationTarget = 'dashboard';
 let googleTokenClient = null;
@@ -48,6 +49,11 @@ function safeUrl(value) {
     if (!candidate) return '';
     if (!/^https?:\/\//i.test(candidate)) candidate = `https://${candidate}`;
     try { const url = new URL(candidate); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; }
+}
+function safeImageSource(value) {
+    const source = String(value || '').trim();
+    if (/^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(source) && source.length <= 180000) return source;
+    return safeUrl(source);
 }
 function uid(prefix) { return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`; }
 function appInitials(value) {
@@ -285,7 +291,7 @@ function renderCard(app) {
     card.className = 'app-card';
     card.style.border = `1px solid ${safeColor(app.color)}66`;
     card.style.boxShadow = `inset 0 0 30px ${safeColor(app.color)}15`;
-    const imageUrl = safeUrl(app.imageUrl) || websiteIconUrl(app.url);
+    const imageUrl = safeImageSource(app.imageUrl) || websiteIconUrl(app.url);
     const initials = escapeHTML(appInitials(app.name));
     card.innerHTML = `
         <button class="gear-btn" aria-label="Editar ${escapeHTML(app.name)}" style="position:absolute;top:5px;left:5px;padding:4px;background:transparent;border:0;cursor:pointer;z-index:10;opacity:.65;color:#fff"><i data-lucide="settings" style="width:15px"></i></button>
@@ -379,7 +385,7 @@ function setAppIconStatus(message = '', type = '') {
 }
 
 function updateAppIconPreview() {
-    const customImageUrl = safeUrl(byId('portal-app-icon-url').value);
+    const customImageUrl = safeImageSource(pendingIconDataUrl || byId('portal-app-icon-url').value);
     const imageUrl = customImageUrl || websiteIconUrl(byId('portal-app-url').value);
     const initials = escapeHTML(appInitials(byId('portal-app-name').value));
     const color = safeColor(byId('portal-app-color').value, state.accent);
@@ -387,7 +393,10 @@ function updateAppIconPreview() {
     preview.innerHTML = `<span class="app-icon-preview-box" style="background:linear-gradient(145deg,${color}55,${color}12)">${imageUrl ? `<img src="${escapeHTML(imageUrl)}" alt="">` : `<strong>${initials}</strong>`}</span><span>${customImageUrl ? 'Icono personalizado' : imageUrl ? 'Icono detectado de la web' : 'Respaldo premium con iniciales'}</span>`;
     const image = preview.querySelector('img');
     if (image) image.onerror = () => {
-        if (customImageUrl) byId('portal-app-icon-url').value = '';
+        if (customImageUrl) {
+            pendingIconDataUrl = '';
+            byId('portal-app-icon-url').value = '';
+        }
         image.replaceWith(Object.assign(document.createElement('strong'), { textContent:appInitials(byId('portal-app-name').value) }));
         preview.lastElementChild.textContent = 'Respaldo premium con iniciales';
         if (customImageUrl) setAppIconStatus('No se pudo cargar esa imagen. Se usarán las iniciales.', 'error');
@@ -410,12 +419,56 @@ async function resolveAppIcon(value) {
     return safeUrl(metadata.image);
 }
 
-async function fillAppIconFromClipboard() {
-    if (!navigator.clipboard?.readText) return setAppIconStatus('Pega el enlace de la imagen manualmente.', 'error');
+async function normalizeIconImage(blob) {
+    if (!blob?.type?.startsWith('image/') || blob.size > 8 * 1024 * 1024) throw new Error('Archivo de imagen no válido');
+    const objectUrl = URL.createObjectURL(blob);
     try {
+        const image = new Image();
+        image.src = objectUrl;
+        await image.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const context = canvas.getContext('2d');
+        const scale = Math.max(128 / image.naturalWidth, 128 / image.naturalHeight);
+        const width = image.naturalWidth * scale;
+        const height = image.naturalHeight * scale;
+        context.drawImage(image, (128 - width) / 2, (128 - height) / 2, width, height);
+        return canvas.toDataURL('image/webp', .84);
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
+
+async function applyIconFile(file) {
+    try {
+        setAppIconStatus('Preparando el icono…');
+        pendingIconDataUrl = await normalizeIconImage(file);
+        byId('portal-app-icon-url').value = '';
+        updateAppIconPreview();
+        setAppIconStatus('Icono personalizado añadido.', 'success');
+    } catch {
+        setAppIconStatus('Elige una imagen PNG, JPG o WebP de hasta 8 MB.', 'error');
+    }
+}
+
+async function fillAppIconFromClipboard() {
+    if (!navigator.clipboard?.readText && !navigator.clipboard?.read) return setAppIconStatus('Elige la imagen desde tu dispositivo.', 'error');
+    try {
+        if (navigator.clipboard?.read) {
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    const imageType = item.types.find((type) => type.startsWith('image/'));
+                    if (imageType) return applyIconFile(await item.getType(imageType));
+                }
+            } catch { /* Algunos navegadores permiten texto, pero no imágenes. */ }
+        }
+        if (!navigator.clipboard?.readText) return setAppIconStatus('Elige la imagen desde tu dispositivo.', 'error');
         setAppIconStatus('Buscando la imagen compartida…');
         const imageUrl = await resolveAppIcon(await navigator.clipboard.readText());
         if (!imageUrl) return setAppIconStatus('Ese enlace no contiene una imagen pública utilizable.', 'error');
+        pendingIconDataUrl = '';
         byId('portal-app-icon-url').value = imageUrl;
         updateAppIconPreview();
         setAppIconStatus('Icono personalizado añadido.', 'success');
@@ -463,7 +516,9 @@ async function openAppForm(appId = null) {
     byId('portal-app-name').value = app?.name || '';
     byId('portal-app-url').value = app?.url || '';
     byId('portal-app-description').value = app?.description || '';
-    byId('portal-app-icon-url').value = app?.imageUrl || '';
+    const storedImage = safeImageSource(app?.imageUrl);
+    pendingIconDataUrl = storedImage.startsWith('data:image/') ? storedImage : '';
+    byId('portal-app-icon-url').value = pendingIconDataUrl ? '' : storedImage;
     byId('portal-app-color').value = safeColor(app?.color, state.accent);
     byId('btn-delete-app').style.display = app ? 'block' : 'none';
     fillCategorySelect(app?.categoryId || state.categories[0]?.id);
@@ -475,11 +530,16 @@ async function openAppForm(appId = null) {
 }
 byId('btn-paste-app-link').onclick = () => fillAppFromClipboard();
 byId('btn-paste-app-icon').onclick = () => fillAppIconFromClipboard();
+byId('btn-choose-app-icon').onclick = () => byId('portal-app-icon-file').click();
+byId('portal-app-icon-file').addEventListener('change', (event) => {
+    if (event.target.files?.[0]) applyIconFile(event.target.files[0]);
+    event.target.value = '';
+});
 byId('portal-app-name').addEventListener('input', updateAppIconPreview);
 byId('portal-app-color').addEventListener('input', updateAppIconPreview);
-byId('portal-app-icon-url').addEventListener('change', updateAppIconPreview);
+byId('portal-app-icon-url').addEventListener('change', () => { pendingIconDataUrl = ''; updateAppIconPreview(); });
 byId('portal-app-url').addEventListener('change', updateAppIconPreview);
-window.closeCreator = () => { byId('creator-overlay').style.display = 'none'; editingAppId = null; };
+window.closeCreator = () => { byId('creator-overlay').style.display = 'none'; editingAppId = null; pendingIconDataUrl = ''; };
 byId('btn-process-magic').onclick = () => {
     const name = byId('portal-app-name').value.trim();
     const url = safeUrl(byId('portal-app-url').value);
@@ -491,7 +551,7 @@ byId('btn-process-magic').onclick = () => {
         categoryId: byId('portal-app-category').value === '__new__' ? '' : byId('portal-app-category').value,
         favorite: index >= 0 ? Boolean(state.apps[index].favorite) : false,
         color: safeColor(byId('portal-app-color').value, state.accent),
-        imageUrl: safeUrl(byId('portal-app-icon-url').value), icon: 'link-2'
+        imageUrl: safeImageSource(pendingIconDataUrl || byId('portal-app-icon-url').value), icon: 'link-2'
     };
     if (index >= 0) state.apps[index] = record; else state.apps.push(record);
     persist(); closeCreator(); renderDashboard();

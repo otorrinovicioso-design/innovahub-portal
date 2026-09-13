@@ -39,7 +39,7 @@ if (/pricing-tier[\s\S]*data-plan=/.test(html)) throw new Error('Quedan tarjetas
 ['btn-paste-app-link', 'fillAppFromClipboard', 'navigator.clipboard.readText', '/api/metadata'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta autocompletado desde portapapeles: ${token}`);
 });
-['portal-app-icon-url', 'btn-paste-app-icon', 'fillAppIconFromClipboard', 'resolveAppIcon', 'websiteIconUrl', 'app-icon-monogram', 'imageUrl'].forEach((token) => {
+['portal-app-icon-url', 'btn-paste-app-icon', 'fillAppIconFromClipboard', 'resolveAppIcon', 'websiteIconUrl', 'app-icon-monogram', 'imageUrl', 'btn-choose-app-icon', 'normalizeIconImage', 'safeImageSource'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta personalización premium de iconos: ${token}`);
 });
 console.log('OK: estructura de InnovaHub Portal validada');
