@@ -50,6 +50,16 @@ function safeUrl(value) {
     try { const url = new URL(candidate); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; }
 }
 function uid(prefix) { return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`; }
+function appInitials(value) {
+    const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+    return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : (words[0] || 'A').slice(0, 2)).toUpperCase();
+}
+function websiteIconUrl(value) {
+    try {
+        const url = new URL(value);
+        return ['http:', 'https:'].includes(url.protocol) ? new URL('/favicon.ico', url.origin).href : '';
+    } catch { return ''; }
+}
 
 function loadState() {
     try {
@@ -275,12 +285,22 @@ function renderCard(app) {
     card.className = 'app-card';
     card.style.border = `1px solid ${safeColor(app.color)}66`;
     card.style.boxShadow = `inset 0 0 30px ${safeColor(app.color)}15`;
+    const imageUrl = safeUrl(app.imageUrl) || websiteIconUrl(app.url);
+    const initials = escapeHTML(appInitials(app.name));
     card.innerHTML = `
         <button class="gear-btn" aria-label="Editar ${escapeHTML(app.name)}" style="position:absolute;top:5px;left:5px;padding:4px;background:transparent;border:0;cursor:pointer;z-index:10;opacity:.65;color:#fff"><i data-lucide="settings" style="width:15px"></i></button>
         <button class="favorite-btn ${app.favorite ? 'active' : ''}" aria-label="${app.favorite ? 'Quitar de' : 'Añadir a'} favoritos"><i data-lucide="star"></i></button>
-        <div class="icon-box" style="color:${safeColor(app.color)};border-color:${safeColor(app.color)};background:${safeColor(app.color)}1A"><i data-lucide="${escapeHTML(app.icon || 'link-2')}" style="width:16px"></i></div>
+        <div class="icon-box" style="color:${safeColor(app.color)};border-color:${safeColor(app.color)};background:linear-gradient(145deg,${safeColor(app.color)}55,${safeColor(app.color)}12)">
+            ${imageUrl ? `<img class="app-custom-icon" src="${escapeHTML(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+            <span class="app-icon-monogram"${imageUrl ? ' hidden' : ''}>${initials}</span>
+        </div>
         <h3>${escapeHTML(app.name)}</h3>
         <p class="portal-card-desc">${escapeHTML(app.description || new URL(app.url).hostname)}</p>`;
+    const customIcon = card.querySelector('.app-custom-icon');
+    if (customIcon) customIcon.onerror = () => {
+        customIcon.remove();
+        card.querySelector('.app-icon-monogram').hidden = false;
+    };
     card.querySelector('.gear-btn').onclick = (event) => { event.stopPropagation(); openAppForm(app.id); };
     card.querySelector('.favorite-btn').onclick = (event) => { event.stopPropagation(); app.favorite = !app.favorite; persist(); renderDashboard(); };
     card.onclick = () => window.open(app.url, '_blank', 'noopener,noreferrer');
@@ -351,6 +371,59 @@ function setAppLinkStatus(message = '', type = '') {
     status.style.color = type === 'success' ? 'var(--accent)' : type === 'error' ? '#ff7777' : 'var(--text-secondary)';
 }
 
+function setAppIconStatus(message = '', type = '') {
+    const status = byId('app-icon-status');
+    status.textContent = message;
+    status.style.display = message ? 'block' : 'none';
+    status.style.color = type === 'success' ? 'var(--accent)' : type === 'error' ? '#ff7777' : 'var(--text-secondary)';
+}
+
+function updateAppIconPreview() {
+    const customImageUrl = safeUrl(byId('portal-app-icon-url').value);
+    const imageUrl = customImageUrl || websiteIconUrl(byId('portal-app-url').value);
+    const initials = escapeHTML(appInitials(byId('portal-app-name').value));
+    const color = safeColor(byId('portal-app-color').value, state.accent);
+    const preview = byId('app-icon-preview');
+    preview.innerHTML = `<span class="app-icon-preview-box" style="background:linear-gradient(145deg,${color}55,${color}12)">${imageUrl ? `<img src="${escapeHTML(imageUrl)}" alt="">` : `<strong>${initials}</strong>`}</span><span>${customImageUrl ? 'Icono personalizado' : imageUrl ? 'Icono detectado de la web' : 'Respaldo premium con iniciales'}</span>`;
+    const image = preview.querySelector('img');
+    if (image) image.onerror = () => {
+        if (customImageUrl) byId('portal-app-icon-url').value = '';
+        image.replaceWith(Object.assign(document.createElement('strong'), { textContent:appInitials(byId('portal-app-name').value) }));
+        preview.lastElementChild.textContent = 'Respaldo premium con iniciales';
+        if (customImageUrl) setAppIconStatus('No se pudo cargar esa imagen. Se usarán las iniciales.', 'error');
+    };
+}
+
+function isGeminiShareUrl(value) {
+    try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && (url.hostname === 'g.co' || url.hostname === 'gemini.google.com' || url.hostname.endsWith('.google.com'));
+    } catch { return false; }
+}
+
+async function resolveAppIcon(value) {
+    const candidate = safeUrl(value);
+    if (!candidate) return '';
+    if (!isGeminiShareUrl(candidate)) return candidate;
+    const response = await fetch(`/api/metadata?url=${encodeURIComponent(candidate)}`);
+    const metadata = response.ok ? await response.json() : {};
+    return safeUrl(metadata.image);
+}
+
+async function fillAppIconFromClipboard() {
+    if (!navigator.clipboard?.readText) return setAppIconStatus('Pega el enlace de la imagen manualmente.', 'error');
+    try {
+        setAppIconStatus('Buscando la imagen compartida…');
+        const imageUrl = await resolveAppIcon(await navigator.clipboard.readText());
+        if (!imageUrl) return setAppIconStatus('Ese enlace no contiene una imagen pública utilizable.', 'error');
+        byId('portal-app-icon-url').value = imageUrl;
+        updateAppIconPreview();
+        setAppIconStatus('Icono personalizado añadido.', 'success');
+    } catch {
+        setAppIconStatus('No se pudo leer esa imagen. Puedes pegar un enlace directo.', 'error');
+    }
+}
+
 function shortDescription(value) {
     return String(value || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).slice(0, 3).join(' ').replace(/[.,;:!?]+$/, '');
 }
@@ -390,14 +463,22 @@ async function openAppForm(appId = null) {
     byId('portal-app-name').value = app?.name || '';
     byId('portal-app-url').value = app?.url || '';
     byId('portal-app-description').value = app?.description || '';
+    byId('portal-app-icon-url').value = app?.imageUrl || '';
     byId('portal-app-color').value = safeColor(app?.color, state.accent);
     byId('btn-delete-app').style.display = app ? 'block' : 'none';
     fillCategorySelect(app?.categoryId || state.categories[0]?.id);
     setAppLinkStatus();
+    setAppIconStatus();
+    updateAppIconPreview();
     byId('creator-overlay').style.display = 'flex';
     if (!app) await fillAppFromClipboard({ quiet:true });
 }
 byId('btn-paste-app-link').onclick = () => fillAppFromClipboard();
+byId('btn-paste-app-icon').onclick = () => fillAppIconFromClipboard();
+byId('portal-app-name').addEventListener('input', updateAppIconPreview);
+byId('portal-app-color').addEventListener('input', updateAppIconPreview);
+byId('portal-app-icon-url').addEventListener('change', updateAppIconPreview);
+byId('portal-app-url').addEventListener('change', updateAppIconPreview);
 window.closeCreator = () => { byId('creator-overlay').style.display = 'none'; editingAppId = null; };
 byId('btn-process-magic').onclick = () => {
     const name = byId('portal-app-name').value.trim();
@@ -409,7 +490,8 @@ byId('btn-process-magic').onclick = () => {
         description: byId('portal-app-description').value.trim().slice(0, 140),
         categoryId: byId('portal-app-category').value === '__new__' ? '' : byId('portal-app-category').value,
         favorite: index >= 0 ? Boolean(state.apps[index].favorite) : false,
-        color: safeColor(byId('portal-app-color').value, state.accent), icon: 'link-2'
+        color: safeColor(byId('portal-app-color').value, state.accent),
+        imageUrl: safeUrl(byId('portal-app-icon-url').value), icon: 'link-2'
     };
     if (index >= 0) state.apps[index] = record; else state.apps.push(record);
     persist(); closeCreator(); renderDashboard();
