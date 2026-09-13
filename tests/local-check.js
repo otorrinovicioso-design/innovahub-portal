@@ -4,6 +4,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const bank = fs.readFileSync(path.join(root, 'icon-bank.js'), 'utf8');
 const required = ['view-landing', 'view-setup', 'view-dashboard', 'creator-overlay', 'app.js'];
 required.forEach((token) => { if (!html.includes(token)) throw new Error(`Falta ${token}`); });
 ['innovahub.portal.state.v1', 'safeUrl', 'renderDashboard', 'openAppForm'].forEach((token) => {
@@ -70,4 +71,22 @@ ownedKeywords.forEach(([keyword, owner]) => {
 });
 if (!app.includes('safeColor(category?.color, state.accent)')) throw new Error('El color del icono debe proceder de la categoría o del Hub');
 if (/portal-app-icon-url|btn-paste-app-icon|normalizeIconImage|portal-app-color/.test(`${html}\n${app}`)) throw new Error('Quedan controles del experimento anterior de iconos');
+const bankScriptPosition = html.indexOf('<script src="icon-bank.js"></script>');
+const appScriptPosition = html.indexOf('<script src="app.js"></script>');
+if (bankScriptPosition < 0 || appScriptPosition < 0 || bankScriptPosition > appScriptPosition) throw new Error('El banco de iconos debe cargarse antes de app.js');
+if (!app.includes('window.InnovaIconBank') || !app.includes('bank.render') || !app.includes('app-bank-icon')) throw new Error('Las tarjetas deben usar el banco SVG');
+const renderCardBlock = app.slice(app.indexOf('function renderCard'), app.indexOf('function renderCategories'));
+if (/data-lucide="\$\{escapeHTML\(displayIcon\)\}"/.test(renderCardBlock)) throw new Error('Las tarjetas no deben renderizar el icono de app con Lucide');
+const ruleKeys = [...iconRuleBlock.matchAll(/^\s*\['([^']+)'/gm)].map((match) => match[1]);
+const bankKeys = [...bank.matchAll(/^\s*'([^']+)':\s*`/gm)].map((match) => match[1]);
+if (bankKeys.length !== ruleKeys.length) throw new Error(`El banco SVG debe tener ${ruleKeys.length} iconos, no ${bankKeys.length}`);
+ruleKeys.forEach((key) => { if (!bankKeys.includes(key)) throw new Error(`Falta el icono SVG ${key}`); });
+if (!app.includes("[requestedIcon, semanticIcon, 'bot']")) throw new Error('Falta fallback seguro para iconos antiguos o desconocidos');
+const fallbackMarkup = app.match(/const FALLBACK_APP_ICON = '([^']+)'/)?.[1] || '';
+if (!fallbackMarkup || !app.includes('return FALLBACK_APP_ICON')) throw new Error('Falta el fallback SVG local de las tarjetas');
+if (/<(?:foreignObject|script)\b|(?:xlink:)?href\s*=/.test(fallbackMarkup)) throw new Error('El fallback SVG no debe incluir contenido activo ni referencias externas');
+['clamp(44px, 5.4vw, 58px)', 'width: 40px !important', 'color-mix(in srgb, var(--card-color)', '@media (min-width: 769px) and (max-width: 960px)', 'grid-template-columns: repeat(4, 1fr)', '.app-card { padding: 10px; }', 'width: 46px; height: 46px; margin-bottom: 8px;', 'color-mix(in srgb, var(--card-color) 58%, #fff)', 'color-mix(in srgb, var(--card-color) 48%, #fff)'].forEach((token) => {
+    if (!html.includes(token)) throw new Error(`Falta ajuste visual de iconos: ${token}`);
+});
+if (/<(?:foreignObject|script)\b|(?:xlink:)?href\s*=/.test(bank)) throw new Error('El banco SVG no debe incluir contenido activo ni referencias externas');
 console.log('OK: estructura de InnovaHub Portal validada');

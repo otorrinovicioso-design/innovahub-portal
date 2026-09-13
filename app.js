@@ -33,6 +33,7 @@ const TUTORIAL_STEPS = [
     { title:'Copia el enlace público', copy:'Pulsa Copiar enlace. Ese vínculo es el que conectará tu aplicación con InnovaHub.', image:'tutorial-assets/03-copiar-enlace.png', alt:'Ventana para copiar el enlace público de la aplicación' },
     { title:'Añádela a tu Hub', copy:'En InnovaHub pulsa Añadir app, pega el enlace, completa el nombre y guarda. Ya formará parte de tu ecosistema.', image:'tutorial-assets/04-anadir-hub.png', alt:'Formulario para añadir una aplicación a InnovaHub' }
 ];
+const FALLBACK_APP_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true" class="app-bank-icon"><rect x="10" y="12" width="44" height="40" rx="8" fill="currentColor" opacity=".12"></rect><rect x="10" y="12" width="44" height="40" rx="8"></rect><path d="M10 24h44"></path><circle cx="18" cy="18" r="2" fill="currentColor" stroke="none" opacity=".62"></circle><circle cx="25" cy="18" r="2" fill="currentColor" stroke="none" opacity=".36"></circle><path d="M23 34h18v9H23z" fill="currentColor" opacity=".22" stroke="none"></path><path d="M29 38h6" stroke-width="2"></path></svg>';
 const ICON_RULES = [
     ['stethoscope', ['medicina','medico','medica','clinica','clinicas','hospital','hospitales','doctor','doctora','paciente','pacientes','sanitario','sanitaria']],
     ['heart-pulse', ['cardiologia','cardiaco','cardiaca','corazon','pulso','tension arterial','frecuencia cardiaca','electrocardiograma']],
@@ -128,6 +129,21 @@ function chooseAppIcon(app) {
 function appDisplayColor(app) {
     const category = state.categories.find((entry) => entry.id === app.categoryId);
     return safeColor(category?.color, state.accent);
+}
+function renderAppBankIcon(app, requestedIcon) {
+    const bank = window.InnovaIconBank;
+    if (!bank || typeof bank.render !== 'function') return FALLBACK_APP_ICON;
+    const semanticIcon = chooseAppIcon(app);
+    const candidates = [...new Set([requestedIcon, semanticIcon, 'bot'])].filter(Boolean);
+    try {
+        for (const key of candidates) {
+            const markup = bank.render(key, { className: 'app-bank-icon' });
+            if (markup) return markup;
+        }
+    } catch (error) {
+        console.warn('No se pudo renderizar el banco de iconos.', error);
+    }
+    return FALLBACK_APP_ICON;
 }
 
 function loadState() {
@@ -354,14 +370,15 @@ function renderCard(app) {
     card.className = 'app-card';
     const displayColor = appDisplayColor(app);
     const displayIcon = app.icon && app.icon !== 'link-2' ? app.icon : chooseAppIcon(app);
-    card.style.border = `1px solid ${displayColor}66`;
-    card.style.boxShadow = `inset 0 0 30px ${displayColor}15`;
+    card.style.setProperty('--card-color', displayColor);
     card.innerHTML = `
         <button class="gear-btn" aria-label="Editar ${escapeHTML(app.name)}" style="position:absolute;top:5px;left:5px;padding:4px;background:transparent;border:0;cursor:pointer;z-index:10;opacity:.65;color:#fff"><i data-lucide="settings" style="width:15px"></i></button>
         <button class="favorite-btn ${app.favorite ? 'active' : ''}" aria-label="${app.favorite ? 'Quitar de' : 'Añadir a'} favoritos"><i data-lucide="star"></i></button>
-        <div class="icon-box" style="color:${displayColor};border-color:${displayColor};background:${displayColor}1A"><i data-lucide="${escapeHTML(displayIcon)}" style="width:16px"></i></div>
+        <div class="icon-box" aria-hidden="true"></div>
         <h3>${escapeHTML(app.name)}</h3>
         <p class="portal-card-desc">${escapeHTML(app.description || new URL(app.url).hostname)}</p>`;
+    const iconBox = card.querySelector('.icon-box');
+    iconBox.innerHTML = renderAppBankIcon(app, displayIcon);
     card.querySelector('.gear-btn').onclick = (event) => { event.stopPropagation(); openAppForm(app.id); };
     card.querySelector('.favorite-btn').onclick = (event) => { event.stopPropagation(); app.favorite = !app.favorite; persist(); renderDashboard(); };
     card.onclick = () => window.open(app.url, '_blank', 'noopener,noreferrer');

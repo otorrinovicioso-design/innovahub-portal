@@ -242,8 +242,11 @@
         }
 
         .app-card {
+            position: relative;
             background: rgba(20,20,20,0.4);
+            --card-color: var(--accent-color);
             border: 1px solid var(--glass-border);
+            border-color: color-mix(in srgb, var(--card-color) 34%, var(--glass-border));
             border-radius: 14px;
             padding: 14px;
             display: flex;
@@ -255,32 +258,73 @@
             aspect-ratio: 1; /* PERFECT SQUARE */
             text-align: center;
             backdrop-filter: blur(8px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 0 30px rgba(255,255,255,.04);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 0 30px color-mix(in srgb, var(--card-color) 8%, transparent);
         }
         .app-card:hover, .app-card:active {
-            border-color: var(--accent-color);
+            border-color: var(--card-color);
             background: rgba(255,255,255,0.04);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.6), inset 0 0 20px var(--accent-glow);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,.08);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6), inset 0 0 20px color-mix(in srgb, var(--card-color) 18%, transparent);
             transform: translateY(-5px) scale(1.03);
         }
 
         .app-card .icon-box {
-            width: 32px; height: 32px;
+            width: clamp(44px, 5.4vw, 58px);
+            height: clamp(44px, 5.4vw, 58px);
             background: rgba(255,255,255,0.03);
-            border-radius: 8px;
+            background: color-mix(in srgb, var(--card-color) 12%, transparent);
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             margin-bottom: 12px;
             border: 1px solid var(--glass-border);
+            border-color: color-mix(in srgb, var(--card-color) 52%, var(--glass-border));
             flex-shrink: 0;
-            color: var(--card-color, #fff); /* Custom card color support */
+            color: #fff;
+            color: color-mix(in srgb, var(--card-color) 58%, #fff);
+            box-shadow: 0 0 22px rgba(255,255,255,.08), inset 0 0 14px rgba(255,255,255,.04);
+            box-shadow: 0 0 22px color-mix(in srgb, var(--card-color) 18%, transparent), inset 0 0 14px color-mix(in srgb, var(--card-color) 8%, transparent);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card .icon-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at 28% 20%, rgba(255,255,255,.22), transparent 48%);
+            pointer-events: none;
+        }
+
+        .app-card .icon-box .app-bank-icon {
+            width: 72%;
+            height: 72%;
+            display: block;
+            flex: 0 0 auto;
+            position: relative;
+            z-index: 1;
+            overflow: visible;
         }
         
         .app-card:hover .icon-box {
-            border-color: var(--accent-color);
-            color: var(--accent-color);
+            border-color: var(--card-color);
+            color: #fff;
+            color: color-mix(in srgb, var(--card-color) 48%, #fff);
+            box-shadow: 0 0 28px rgba(255,255,255,.12), inset 0 0 18px rgba(255,255,255,.06);
+            box-shadow: 0 0 28px color-mix(in srgb, var(--card-color) 30%, transparent), inset 0 0 18px color-mix(in srgb, var(--card-color) 12%, transparent);
         }
 
-        .app-card h3 { font-size: 0.7rem; font-weight: 700; line-height: 1.2; }
+        .app-card h3 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+        }
 
         .nav-item {
             padding: 14px 18px;
@@ -430,6 +474,12 @@
             #080a10;
         }
 
+        @media (min-width: 769px) and (max-width: 960px) {
+            .app-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+            .app-card { padding: 10px; }
+            .app-card .icon-box { width: 46px; height: 46px; margin-bottom: 8px; }
+        }
+
         /* --- MOBILE FIXES --- */
         @media (max-width: 768px) {
             .dashboard-container { flex-direction: column; }
@@ -473,6 +523,8 @@
             .hub-title-hero { font-size: 2.2rem; letter-spacing: 1px !important; }
             .app-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; width: 100%;}
             .app-card { padding: 8px !important; border-radius: 12px !important; }
+            .app-card .icon-box { width: 40px !important; height: 40px !important; margin-bottom: 8px; }
+            .app-card .icon-box .app-bank-icon { width: 72%; height: 72%; }
             .app-card h3 { font-size: 0.55rem !important; }
             .main-header { text-align: center; width: 100%; margin-bottom: 2px; }
             .main-header h1 { font-size: clamp(1.8rem, 8vw, 2.3rem) !important; margin: 0 !important; }
@@ -659,6 +711,9 @@
             .mobile-portal-nav .mobile-favorites i,.mobile-portal-nav .mobile-favorites span{color:#bb00ff!important}
             .mobile-portal-nav .mobile-categories-button i,.mobile-portal-nav .mobile-categories-button span{color:#ffaa00!important}
             .portal-card-desc { display:none; }
+        }
+        @media (max-width: 360px) {
+            .app-card .icon-box { width: 38px !important; height: 38px !important; }
         }
 
     </style>
@@ -886,6 +941,7 @@
 
     <!-- El motor original queda fuera de esta copia: este Hub publica enlaces. -->
     <!-- SCRIPT LIMPIO (Sin dependencias externas que bloqueen) -->
+    <script src="icon-bank.js"></script>
     <script src="app.js"></script>
     <script>
         // Init icons for the new modal after script load

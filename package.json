@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node server.js",
-    "lint": "node --check app.js && node --check server.js",
-    "test": "node tests/local-check.js"
+    "lint": "node --check app.js && node --check icon-bank.js && node --check server.js",
+    "test": "node tests/local-check.js && node tests/icon-bank-check.js"
   }
 }
