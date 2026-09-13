@@ -32,13 +32,6 @@ function metaContent(html, key) {
     return '';
 }
 
-function absoluteHttpUrl(value, base) {
-    try {
-        const url = new URL(value, base);
-        return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? url.href : '';
-    } catch { return ''; }
-}
-
 export async function onRequestGet(context) {
     const target = allowedUrl(new URL(context.request.url).searchParams.get('url') || '');
     if (!target) return json({ error:'Solo se admiten enlaces de Gemini.' }, 400);
@@ -46,18 +39,16 @@ export async function onRequestGet(context) {
     const timeout = setTimeout(() => controller.abort(), 5000);
     try {
         const response = await fetch(target.href, { redirect:'follow', signal:controller.signal });
-        if (!response.ok || !(response.headers.get('content-type') || '').includes('text/html')) return json({ title:'', description:'', image:'' });
+        if (!response.ok || !(response.headers.get('content-type') || '').includes('text/html')) return json({ title:'', description:'' });
         const html = (await response.text()).slice(0, 1000000);
-        const finalUrl = response.url || target.href;
         const rawTitle = metaContent(html, 'og:title') || metaContent(html, 'twitter:title') || decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]);
         const rawDescription = metaContent(html, 'og:description') || metaContent(html, 'description') || metaContent(html, 'twitter:description');
-        const image = absoluteHttpUrl(metaContent(html, 'og:image') || metaContent(html, 'twitter:image') || metaContent(html, 'twitter:image:src'), finalUrl);
         const title = rawTitle.replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '').replace(/\s*[|–—-]\s*(Gemini|Google Gemini)\s*$/i, '').trim();
         const genericTitle = /^(gemini|google|google gemini|sign in|iniciar sesi[oó]n)$/i.test(title);
         const genericDescription = /gemini,? google.?s ai assistant|asistente de ia de google/i.test(rawDescription);
-        return json({ title:genericTitle ? '' : title.slice(0, 80), description:genericDescription ? '' : rawDescription.slice(0, 240), image });
+        return json({ title:genericTitle ? '' : title.slice(0, 80), description:genericDescription ? '' : rawDescription.slice(0, 240) });
     } catch {
-        return json({ title:'', description:'', image:'' });
+        return json({ title:'', description:'' });
     } finally {
         clearTimeout(timeout);
     }

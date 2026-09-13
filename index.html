@@ -265,23 +265,15 @@
         }
 
         .app-card .icon-box {
-            width: 40px; height: 40px;
+            width: 32px; height: 32px;
             background: rgba(255,255,255,0.03);
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             border: 1px solid var(--glass-border);
             flex-shrink: 0;
             color: var(--card-color, #fff); /* Custom card color support */
-            position: relative;
-            overflow: hidden;
-            box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 20px rgba(0,0,0,.28);
         }
-        .app-custom-icon { width:100%; height:100%; object-fit:cover; border-radius:7px; }
-        .app-icon-monogram { font-family:'Space Grotesk',sans-serif; font-size:.65rem; font-weight:900; letter-spacing:-.5px; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,.75); }
-        .app-icon-preview { display:flex; align-items:center; gap:10px; min-height:38px; margin:-4px 0 12px; color:var(--text-secondary); font-size:.64rem; }
-        .app-icon-preview-box { width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center; overflow:hidden; border:1px solid var(--glass-border); border-radius:9px; background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.025)); }
-        .app-icon-preview-box img { width:100%; height:100%; object-fit:cover; }
         
         .app-card:hover .icon-box {
             border-color: var(--accent-color);
@@ -815,22 +807,9 @@
                 </button>
             </div>
             <p id="app-link-status" aria-live="polite" style="display:none;margin:-5px 0 11px;font-size:.65rem;color:var(--text-secondary);"></p>
-            <label for="portal-app-icon-url" style="display:block;font-size:.62rem;letter-spacing:2px;color:var(--text-secondary);font-weight:900;margin:2px 0 6px;">ICONO PERSONALIZADO · OPCIONAL</label>
-            <p style="font-size:.65rem;color:var(--text-secondary);margin:-1px 0 6px;line-height:1.4;">Usaremos el icono de la web automáticamente. Para uno propio, pega una imagen o enlace directo; si Gemini solo ofrece una página compartida, descarga la imagen y elígela aquí.</p>
-            <div style="display:flex;gap:8px;align-items:stretch;">
-                <input id="portal-app-icon-url" class="portal-field" inputmode="url" placeholder="Enlace de la imagen o de Gemini" style="flex:1;min-width:0;">
-                <button type="button" id="btn-paste-app-icon" title="Usar el enlace de imagen copiado" aria-label="Usar enlace de imagen copiado" style="margin-bottom:14px;padding:0 13px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:var(--accent);cursor:pointer;">
-                    <i data-lucide="image-plus" style="width:17px;"></i>
-                </button>
-            </div>
-            <input id="portal-app-icon-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-            <button type="button" id="btn-choose-app-icon" style="width:100%;margin:-4px 0 10px;padding:9px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.035);color:#fff;cursor:pointer;font-size:.66rem;font-weight:800;letter-spacing:.7px;"><i data-lucide="upload" style="width:14px;vertical-align:middle;margin-right:6px;"></i>ELEGIR IMAGEN</button>
-            <p id="app-icon-status" aria-live="polite" style="display:none;margin:-5px 0 9px;font-size:.65rem;color:var(--text-secondary);"></p>
-            <div id="app-icon-preview" class="app-icon-preview"></div>
             <textarea id="portal-app-description" class="portal-field" maxlength="140" placeholder="Descripción breve"></textarea>
             <label for="portal-app-category" style="display:block;font-size:.62rem;letter-spacing:2px;color:var(--text-secondary);font-weight:900;margin:2px 0 6px;">CATEGORÍA</label>
             <select id="portal-app-category" class="portal-field"></select>
-            <input id="portal-app-color" class="portal-field" type="color" value="#00f2ff" aria-label="Color de la app">
             <div style="display: flex; gap: 15px;">
                 <button class="btn-primary" id="btn-process-magic">GUARDAR</button>
                 <button id="btn-delete-app" style="display:none; flex:1; background:rgba(255,50,50,.08); color:#ff5555; border:1px solid rgba(255,80,80,.25); border-radius:12px; cursor:pointer;">ELIMINAR</button>

@@ -39,7 +39,11 @@ if (/pricing-tier[\s\S]*data-plan=/.test(html)) throw new Error('Quedan tarjetas
 ['btn-paste-app-link', 'fillAppFromClipboard', 'navigator.clipboard.readText', '/api/metadata'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta autocompletado desde portapapeles: ${token}`);
 });
-['portal-app-icon-url', 'btn-paste-app-icon', 'fillAppIconFromClipboard', 'resolveAppIcon', 'websiteIconUrl', 'app-icon-monogram', 'imageUrl', 'btn-choose-app-icon', 'normalizeIconImage', 'safeImageSource'].forEach((token) => {
-    if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta personalización premium de iconos: ${token}`);
+['ICON_RULES', 'chooseAppIcon', 'appDisplayColor', "|| 'app-window'", 'stethoscope', 'list-checks', 'calculator', 'dumbbell'].forEach((token) => {
+    if (!app.includes(token)) throw new Error(`Falta selección automática de iconos: ${token}`);
 });
+const iconRuleBlock = app.match(/const ICON_RULES = \[([\s\S]*?)\n\];/)?.[1] || '';
+if ((iconRuleBlock.match(/^\s*\['/gm) || []).length < 20) throw new Error('La biblioteca automática necesita al menos 20 iconos');
+if (!app.includes('safeColor(category?.color, state.accent)')) throw new Error('El color del icono debe proceder de la categoría o del Hub');
+if (/portal-app-icon-url|btn-paste-app-icon|normalizeIconImage|portal-app-color/.test(`${html}\n${app}`)) throw new Error('Quedan controles del experimento anterior de iconos');
 console.log('OK: estructura de InnovaHub Portal validada');

@@ -18,7 +18,6 @@ const DEFAULT_STATE = {
 let state = loadState();
 let selectedColor = state.accent;
 let editingAppId = null;
-let pendingIconDataUrl = '';
 let setupFromDashboard = false;
 let categoryCreationTarget = 'dashboard';
 let googleTokenClient = null;
@@ -33,6 +32,57 @@ const TUTORIAL_STEPS = [
     { title:'Pulsa Compartir', copy:'Cuando la app esté lista, abre el menú Compartir de la vista previa.', image:'tutorial-assets/02-compartir.png', alt:'Menú Compartir de una aplicación creada con Gemini' },
     { title:'Copia el enlace público', copy:'Pulsa Copiar enlace. Ese vínculo es el que conectará tu aplicación con InnovaHub.', image:'tutorial-assets/03-copiar-enlace.png', alt:'Ventana para copiar el enlace público de la aplicación' },
     { title:'Añádela a tu Hub', copy:'En InnovaHub pulsa Añadir app, pega el enlace, completa el nombre y guarda. Ya formará parte de tu ecosistema.', image:'tutorial-assets/04-anadir-hub.png', alt:'Formulario para añadir una aplicación a InnovaHub' }
+];
+const ICON_RULES = [
+    ['stethoscope', ['medicina','medico','clinica','consulta','paciente','doctor']],
+    ['heart-pulse', ['salud','corazon','cardio','pulso','bienestar']],
+    ['pill', ['farmacia','medicamento','pastilla','tratamiento']],
+    ['brain', ['mente','cerebro','psicologia','neuro','memoria']],
+    ['activity', ['analitica clinica','constantes','monitorizacion']],
+    ['calculator', ['calculadora','calculo','matematica','ecuacion']],
+    ['list-checks', ['tareas','pendientes','productividad','lista']],
+    ['calendar-days', ['calendario','agenda','citas','eventos']],
+    ['clock', ['horario','reloj','turnos','tiempo']],
+    ['timer', ['temporizador','cronometro','pomodoro']],
+    ['target', ['objetivos','metas','progreso']],
+    ['clipboard-check', ['formulario','control','auditoria','revision']],
+    ['briefcase', ['trabajo','empresa','negocio','profesional']],
+    ['kanban', ['proyecto','kanban','planificacion','flujo']],
+    ['graduation-cap', ['curso','estudio','academia','universidad']],
+    ['book-open', ['libro','lectura','manual','biblioteca']],
+    ['languages', ['idioma','traduccion','ingles','lengua']],
+    ['chart-column', ['estadistica','datos','grafica','informe']],
+    ['wallet-cards', ['finanzas','dinero','gastos','presupuesto']],
+    ['landmark', ['banco','contabilidad','inversion']],
+    ['receipt', ['factura','ticket','recibo']],
+    ['trending-up', ['ventas','crecimiento','mercado','trading']],
+    ['message-circle', ['chat','mensajes','conversacion']],
+    ['mail', ['correo','email','newsletter']],
+    ['users', ['equipo','clientes','contactos','comunidad']],
+    ['phone', ['telefono','llamadas']],
+    ['video', ['videollamada','reunion','streaming']],
+    ['palette', ['diseno','creatividad','arte','colores']],
+    ['pen-tool', ['escritura','redaccion','editor','firma']],
+    ['camera', ['foto','fotografia','camara']],
+    ['music', ['musica','audio','cancion','sonido']],
+    ['film', ['cine','pelicula','video editor']],
+    ['mic', ['podcast','microfono','voz','grabacion']],
+    ['code-2', ['codigo','programacion','desarrollo','software']],
+    ['terminal', ['terminal','consola','comandos']],
+    ['database', ['base de datos','database','registros']],
+    ['cloud', ['nube','cloud','sincronizacion','backup']],
+    ['bot', ['asistente','chatbot','inteligencia artificial','automatizacion']],
+    ['map', ['mapa','ubicacion','ruta','viaje']],
+    ['plane', ['vuelo','avion','turismo']],
+    ['shopping-cart', ['tienda','compras','comercio','productos']],
+    ['package', ['inventario','almacen','envios','paquetes']],
+    ['utensils', ['comida','receta','restaurante','nutricion']],
+    ['dumbbell', ['deporte','entrenamiento','fitness','gimnasio']],
+    ['house', ['hogar','casa','inmobiliaria']],
+    ['gamepad-2', ['juego','gaming','entretenimiento']],
+    ['wrench', ['herramienta','mantenimiento','reparacion']],
+    ['shield-check', ['seguridad','proteccion','privacidad']],
+    ['scale', ['legal','ley','contrato','derecho']]
 ];
 
 const $ = (selector) => document.querySelector(selector);
@@ -50,21 +100,17 @@ function safeUrl(value) {
     if (!/^https?:\/\//i.test(candidate)) candidate = `https://${candidate}`;
     try { const url = new URL(candidate); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; }
 }
-function safeImageSource(value) {
-    const source = String(value || '').trim();
-    if (/^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(source) && source.length <= 180000) return source;
-    return safeUrl(source);
-}
 function uid(prefix) { return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`; }
-function appInitials(value) {
-    const words = String(value || '').trim().split(/\s+/).filter(Boolean);
-    return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : (words[0] || 'A').slice(0, 2)).toUpperCase();
+function normalizedText(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
-function websiteIconUrl(value) {
-    try {
-        const url = new URL(value);
-        return ['http:', 'https:'].includes(url.protocol) ? new URL('/favicon.ico', url.origin).href : '';
-    } catch { return ''; }
+function chooseAppIcon(app) {
+    const text = normalizedText(`${app.name || ''} ${app.description || ''}`);
+    return ICON_RULES.find(([, keywords]) => keywords.some((keyword) => text.includes(keyword)))?.[0] || 'app-window';
+}
+function appDisplayColor(app) {
+    const category = state.categories.find((entry) => entry.id === app.categoryId);
+    return safeColor(category?.color, state.accent);
 }
 
 function loadState() {
@@ -289,24 +335,16 @@ window.changeTutorialStep = (direction) => {
 function renderCard(app) {
     const card = document.createElement('div');
     card.className = 'app-card';
-    card.style.border = `1px solid ${safeColor(app.color)}66`;
-    card.style.boxShadow = `inset 0 0 30px ${safeColor(app.color)}15`;
-    const imageUrl = safeImageSource(app.imageUrl) || websiteIconUrl(app.url);
-    const initials = escapeHTML(appInitials(app.name));
+    const displayColor = appDisplayColor(app);
+    const displayIcon = app.icon && app.icon !== 'link-2' ? app.icon : chooseAppIcon(app);
+    card.style.border = `1px solid ${displayColor}66`;
+    card.style.boxShadow = `inset 0 0 30px ${displayColor}15`;
     card.innerHTML = `
         <button class="gear-btn" aria-label="Editar ${escapeHTML(app.name)}" style="position:absolute;top:5px;left:5px;padding:4px;background:transparent;border:0;cursor:pointer;z-index:10;opacity:.65;color:#fff"><i data-lucide="settings" style="width:15px"></i></button>
         <button class="favorite-btn ${app.favorite ? 'active' : ''}" aria-label="${app.favorite ? 'Quitar de' : 'Añadir a'} favoritos"><i data-lucide="star"></i></button>
-        <div class="icon-box" style="color:${safeColor(app.color)};border-color:${safeColor(app.color)};background:linear-gradient(145deg,${safeColor(app.color)}55,${safeColor(app.color)}12)">
-            ${imageUrl ? `<img class="app-custom-icon" src="${escapeHTML(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
-            <span class="app-icon-monogram"${imageUrl ? ' hidden' : ''}>${initials}</span>
-        </div>
+        <div class="icon-box" style="color:${displayColor};border-color:${displayColor};background:${displayColor}1A"><i data-lucide="${escapeHTML(displayIcon)}" style="width:16px"></i></div>
         <h3>${escapeHTML(app.name)}</h3>
         <p class="portal-card-desc">${escapeHTML(app.description || new URL(app.url).hostname)}</p>`;
-    const customIcon = card.querySelector('.app-custom-icon');
-    if (customIcon) customIcon.onerror = () => {
-        customIcon.remove();
-        card.querySelector('.app-icon-monogram').hidden = false;
-    };
     card.querySelector('.gear-btn').onclick = (event) => { event.stopPropagation(); openAppForm(app.id); };
     card.querySelector('.favorite-btn').onclick = (event) => { event.stopPropagation(); app.favorite = !app.favorite; persist(); renderDashboard(); };
     card.onclick = () => window.open(app.url, '_blank', 'noopener,noreferrer');
@@ -377,106 +415,6 @@ function setAppLinkStatus(message = '', type = '') {
     status.style.color = type === 'success' ? 'var(--accent)' : type === 'error' ? '#ff7777' : 'var(--text-secondary)';
 }
 
-function setAppIconStatus(message = '', type = '') {
-    const status = byId('app-icon-status');
-    status.textContent = message;
-    status.style.display = message ? 'block' : 'none';
-    status.style.color = type === 'success' ? 'var(--accent)' : type === 'error' ? '#ff7777' : 'var(--text-secondary)';
-}
-
-function updateAppIconPreview() {
-    const customImageUrl = safeImageSource(pendingIconDataUrl || byId('portal-app-icon-url').value);
-    const imageUrl = customImageUrl || websiteIconUrl(byId('portal-app-url').value);
-    const initials = escapeHTML(appInitials(byId('portal-app-name').value));
-    const color = safeColor(byId('portal-app-color').value, state.accent);
-    const preview = byId('app-icon-preview');
-    preview.innerHTML = `<span class="app-icon-preview-box" style="background:linear-gradient(145deg,${color}55,${color}12)">${imageUrl ? `<img src="${escapeHTML(imageUrl)}" alt="">` : `<strong>${initials}</strong>`}</span><span>${customImageUrl ? 'Icono personalizado' : imageUrl ? 'Icono detectado de la web' : 'Respaldo premium con iniciales'}</span>`;
-    const image = preview.querySelector('img');
-    if (image) image.onerror = () => {
-        if (customImageUrl) {
-            pendingIconDataUrl = '';
-            byId('portal-app-icon-url').value = '';
-        }
-        image.replaceWith(Object.assign(document.createElement('strong'), { textContent:appInitials(byId('portal-app-name').value) }));
-        preview.lastElementChild.textContent = 'Respaldo premium con iniciales';
-        if (customImageUrl) setAppIconStatus('No se pudo cargar esa imagen. Se usarán las iniciales.', 'error');
-    };
-}
-
-function isGeminiShareUrl(value) {
-    try {
-        const url = new URL(value);
-        return url.protocol === 'https:' && (url.hostname === 'g.co' || url.hostname === 'gemini.google.com' || url.hostname.endsWith('.google.com'));
-    } catch { return false; }
-}
-
-async function resolveAppIcon(value) {
-    const candidate = safeUrl(value);
-    if (!candidate) return '';
-    if (!isGeminiShareUrl(candidate)) return candidate;
-    const response = await fetch(`/api/metadata?url=${encodeURIComponent(candidate)}`);
-    const metadata = response.ok ? await response.json() : {};
-    return safeUrl(metadata.image);
-}
-
-async function normalizeIconImage(blob) {
-    if (!blob?.type?.startsWith('image/') || blob.size > 8 * 1024 * 1024) throw new Error('Archivo de imagen no válido');
-    const objectUrl = URL.createObjectURL(blob);
-    try {
-        const image = new Image();
-        image.src = objectUrl;
-        await image.decode();
-        const canvas = document.createElement('canvas');
-        canvas.width = 128;
-        canvas.height = 128;
-        const context = canvas.getContext('2d');
-        const scale = Math.max(128 / image.naturalWidth, 128 / image.naturalHeight);
-        const width = image.naturalWidth * scale;
-        const height = image.naturalHeight * scale;
-        context.drawImage(image, (128 - width) / 2, (128 - height) / 2, width, height);
-        return canvas.toDataURL('image/webp', .84);
-    } finally {
-        URL.revokeObjectURL(objectUrl);
-    }
-}
-
-async function applyIconFile(file) {
-    try {
-        setAppIconStatus('Preparando el icono…');
-        pendingIconDataUrl = await normalizeIconImage(file);
-        byId('portal-app-icon-url').value = '';
-        updateAppIconPreview();
-        setAppIconStatus('Icono personalizado añadido.', 'success');
-    } catch {
-        setAppIconStatus('Elige una imagen PNG, JPG o WebP de hasta 8 MB.', 'error');
-    }
-}
-
-async function fillAppIconFromClipboard() {
-    if (!navigator.clipboard?.readText && !navigator.clipboard?.read) return setAppIconStatus('Elige la imagen desde tu dispositivo.', 'error');
-    try {
-        if (navigator.clipboard?.read) {
-            try {
-                const items = await navigator.clipboard.read();
-                for (const item of items) {
-                    const imageType = item.types.find((type) => type.startsWith('image/'));
-                    if (imageType) return applyIconFile(await item.getType(imageType));
-                }
-            } catch { /* Algunos navegadores permiten texto, pero no imágenes. */ }
-        }
-        if (!navigator.clipboard?.readText) return setAppIconStatus('Elige la imagen desde tu dispositivo.', 'error');
-        setAppIconStatus('Buscando la imagen compartida…');
-        const imageUrl = await resolveAppIcon(await navigator.clipboard.readText());
-        if (!imageUrl) return setAppIconStatus('Ese enlace no contiene una imagen pública utilizable.', 'error');
-        pendingIconDataUrl = '';
-        byId('portal-app-icon-url').value = imageUrl;
-        updateAppIconPreview();
-        setAppIconStatus('Icono personalizado añadido.', 'success');
-    } catch {
-        setAppIconStatus('No se pudo leer esa imagen. Puedes pegar un enlace directo.', 'error');
-    }
-}
-
 function shortDescription(value) {
     return String(value || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).slice(0, 3).join(' ').replace(/[.,;:!?]+$/, '');
 }
@@ -516,30 +454,14 @@ async function openAppForm(appId = null) {
     byId('portal-app-name').value = app?.name || '';
     byId('portal-app-url').value = app?.url || '';
     byId('portal-app-description').value = app?.description || '';
-    const storedImage = safeImageSource(app?.imageUrl);
-    pendingIconDataUrl = storedImage.startsWith('data:image/') ? storedImage : '';
-    byId('portal-app-icon-url').value = pendingIconDataUrl ? '' : storedImage;
-    byId('portal-app-color').value = safeColor(app?.color, state.accent);
     byId('btn-delete-app').style.display = app ? 'block' : 'none';
     fillCategorySelect(app?.categoryId || state.categories[0]?.id);
     setAppLinkStatus();
-    setAppIconStatus();
-    updateAppIconPreview();
     byId('creator-overlay').style.display = 'flex';
     if (!app) await fillAppFromClipboard({ quiet:true });
 }
 byId('btn-paste-app-link').onclick = () => fillAppFromClipboard();
-byId('btn-paste-app-icon').onclick = () => fillAppIconFromClipboard();
-byId('btn-choose-app-icon').onclick = () => byId('portal-app-icon-file').click();
-byId('portal-app-icon-file').addEventListener('change', (event) => {
-    if (event.target.files?.[0]) applyIconFile(event.target.files[0]);
-    event.target.value = '';
-});
-byId('portal-app-name').addEventListener('input', updateAppIconPreview);
-byId('portal-app-color').addEventListener('input', updateAppIconPreview);
-byId('portal-app-icon-url').addEventListener('change', () => { pendingIconDataUrl = ''; updateAppIconPreview(); });
-byId('portal-app-url').addEventListener('change', updateAppIconPreview);
-window.closeCreator = () => { byId('creator-overlay').style.display = 'none'; editingAppId = null; pendingIconDataUrl = ''; };
+window.closeCreator = () => { byId('creator-overlay').style.display = 'none'; editingAppId = null; };
 byId('btn-process-magic').onclick = () => {
     const name = byId('portal-app-name').value.trim();
     const url = safeUrl(byId('portal-app-url').value);
@@ -550,8 +472,7 @@ byId('btn-process-magic').onclick = () => {
         description: byId('portal-app-description').value.trim().slice(0, 140),
         categoryId: byId('portal-app-category').value === '__new__' ? '' : byId('portal-app-category').value,
         favorite: index >= 0 ? Boolean(state.apps[index].favorite) : false,
-        color: safeColor(byId('portal-app-color').value, state.accent),
-        imageUrl: safeImageSource(pendingIconDataUrl || byId('portal-app-icon-url').value), icon: 'link-2'
+        icon: chooseAppIcon({ name, description:byId('portal-app-description').value })
     };
     if (index >= 0) state.apps[index] = record; else state.apps.push(record);
     persist(); closeCreator(); renderDashboard();
