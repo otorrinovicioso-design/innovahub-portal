@@ -39,11 +39,35 @@ if (/pricing-tier[\s\S]*data-plan=/.test(html)) throw new Error('Quedan tarjetas
 ['btn-paste-app-link', 'fillAppFromClipboard', 'navigator.clipboard.readText', '/api/metadata'].forEach((token) => {
     if (!`${html}\n${app}`.includes(token)) throw new Error(`Falta autocompletado desde portapapeles: ${token}`);
 });
-['ICON_RULES', 'chooseAppIcon', 'appDisplayColor', "|| 'app-window'", 'stethoscope', 'list-checks', 'calculator', 'dumbbell'].forEach((token) => {
+['ICON_RULES', 'chooseAppIcon', 'appDisplayColor', "icon:'app-window'", 'stethoscope', 'list-checks', 'calculator', 'dumbbell'].forEach((token) => {
     if (!app.includes(token)) throw new Error(`Falta selección automática de iconos: ${token}`);
 });
 const iconRuleBlock = app.match(/const ICON_RULES = \[([\s\S]*?)\n\];/)?.[1] || '';
 if ((iconRuleBlock.match(/^\s*\['/gm) || []).length < 20) throw new Error('La biblioteca automática necesita al menos 20 iconos');
+const iconRules = [...iconRuleBlock.matchAll(/^\s*\['([^']+)', \[([^\]]+)\]\],?$/gm)].map((match) => ({
+    icon: match[1],
+    keywords: [...match[2].matchAll(/'([^']+)'/g)].map((keyword) => keyword[1])
+}));
+const keywordOwners = new Map();
+iconRules.forEach(({ icon, keywords }) => {
+    if (keywords.length < 5) throw new Error(`El icono ${icon} necesita al menos cinco palabras clave`);
+    keywords.forEach((keyword) => {
+        const normalizedKeyword = keyword.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        if (keywordOwners.has(normalizedKeyword)) throw new Error(`La palabra clave ${keyword} se solapa entre ${keywordOwners.get(normalizedKeyword)} y ${icon}`);
+        keywordOwners.set(normalizedKeyword, icon);
+    });
+});
+const ownedKeywords = [...keywordOwners.entries()];
+ownedKeywords.forEach(([keyword, owner]) => {
+    ownedKeywords.forEach(([candidate, candidateOwner]) => {
+        if (owner !== candidateOwner && ` ${candidate} `.includes(` ${keyword} `)) {
+            throw new Error(`La palabra clave ${keyword} de ${owner} se solapa con ${candidate} de ${candidateOwner}`);
+        }
+    });
+});
+['const name =', 'const description =', 'specificity', 'score > bestMatch.score'].forEach((token) => {
+    if (!app.includes(token)) throw new Error(`Falta selección ponderada de iconos: ${token}`);
+});
 if (!app.includes('safeColor(category?.color, state.accent)')) throw new Error('El color del icono debe proceder de la categoría o del Hub');
 if (/portal-app-icon-url|btn-paste-app-icon|normalizeIconImage|portal-app-color/.test(`${html}\n${app}`)) throw new Error('Quedan controles del experimento anterior de iconos');
 console.log('OK: estructura de InnovaHub Portal validada');

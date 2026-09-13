@@ -34,55 +34,55 @@ const TUTORIAL_STEPS = [
     { title:'Añádela a tu Hub', copy:'En InnovaHub pulsa Añadir app, pega el enlace, completa el nombre y guarda. Ya formará parte de tu ecosistema.', image:'tutorial-assets/04-anadir-hub.png', alt:'Formulario para añadir una aplicación a InnovaHub' }
 ];
 const ICON_RULES = [
-    ['stethoscope', ['medicina','medico','clinica','consulta','paciente','doctor']],
-    ['heart-pulse', ['salud','corazon','cardio','pulso','bienestar']],
-    ['pill', ['farmacia','medicamento','pastilla','tratamiento']],
-    ['brain', ['mente','cerebro','psicologia','neuro','memoria']],
-    ['activity', ['analitica clinica','constantes','monitorizacion']],
-    ['calculator', ['calculadora','calculo','matematica','ecuacion']],
-    ['list-checks', ['tareas','pendientes','productividad','lista']],
-    ['calendar-days', ['calendario','agenda','citas','eventos']],
-    ['clock', ['horario','reloj','turnos','tiempo']],
-    ['timer', ['temporizador','cronometro','pomodoro']],
-    ['target', ['objetivos','metas','progreso']],
-    ['clipboard-check', ['formulario','control','auditoria','revision']],
-    ['briefcase', ['trabajo','empresa','negocio','profesional']],
-    ['kanban', ['proyecto','kanban','planificacion','flujo']],
-    ['graduation-cap', ['curso','estudio','academia','universidad']],
-    ['book-open', ['libro','lectura','manual','biblioteca']],
-    ['languages', ['idioma','traduccion','ingles','lengua']],
-    ['chart-column', ['estadistica','datos','grafica','informe']],
-    ['wallet-cards', ['finanzas','dinero','gastos','presupuesto']],
-    ['landmark', ['banco','contabilidad','inversion']],
-    ['receipt', ['factura','ticket','recibo']],
-    ['trending-up', ['ventas','crecimiento','mercado','trading']],
-    ['message-circle', ['chat','mensajes','conversacion']],
-    ['mail', ['correo','email','newsletter']],
-    ['users', ['equipo','clientes','contactos','comunidad']],
-    ['phone', ['telefono','llamadas']],
-    ['video', ['videollamada','reunion','streaming']],
-    ['palette', ['diseno','creatividad','arte','colores']],
-    ['pen-tool', ['escritura','redaccion','editor','firma']],
-    ['camera', ['foto','fotografia','camara']],
-    ['music', ['musica','audio','cancion','sonido']],
-    ['film', ['cine','pelicula','video editor']],
-    ['mic', ['podcast','microfono','voz','grabacion']],
-    ['code-2', ['codigo','programacion','desarrollo','software']],
-    ['terminal', ['terminal','consola','comandos']],
-    ['database', ['base de datos','database','registros']],
-    ['cloud', ['nube','cloud','sincronizacion','backup']],
-    ['bot', ['asistente','chatbot','inteligencia artificial','automatizacion']],
-    ['map', ['mapa','ubicacion','ruta','viaje']],
-    ['plane', ['vuelo','avion','turismo']],
-    ['shopping-cart', ['tienda','compras','comercio','productos']],
-    ['package', ['inventario','almacen','envios','paquetes']],
-    ['utensils', ['comida','receta','restaurante','nutricion']],
-    ['dumbbell', ['deporte','entrenamiento','fitness','gimnasio']],
-    ['house', ['hogar','casa','inmobiliaria']],
-    ['gamepad-2', ['juego','gaming','entretenimiento']],
-    ['wrench', ['herramienta','mantenimiento','reparacion']],
-    ['shield-check', ['seguridad','proteccion','privacidad']],
-    ['scale', ['legal','ley','contrato','derecho']]
+    ['stethoscope', ['medicina','medico','medica','clinica','clinicas','hospital','hospitales','doctor','doctora','paciente','pacientes','sanitario','sanitaria']],
+    ['heart-pulse', ['cardiologia','cardiaco','cardiaca','corazon','pulso','tension arterial','frecuencia cardiaca','electrocardiograma']],
+    ['pill', ['farmacia','farmacias','farmaco','farmacos','medicamento','medicamentos','pastilla','pastillas','tratamiento farmacologico']],
+    ['brain', ['psicologia','psicologo','psicologa','neurologia','cerebro','salud mental','memoria cognitiva','terapia emocional']],
+    ['activity', ['constantes vitales','monitor de constantes','analisis biologico','laboratorio diagnostico','saturacion','glucosa','signos vitales']],
+    ['calculator', ['calculadora','calculadoras','calculo','calculos','matematicas','ecuacion','ecuaciones','conversion numerica']],
+    ['list-checks', ['tarea','tareas','pendiente','pendientes','lista de tareas','checklist','quehaceres','organizador personal']],
+    ['calendar-days', ['calendario','calendarios','agenda','agendas','cita','citas','evento','eventos','reserva','reservas','programador de consultas','citas programadas']],
+    ['clock', ['horario','horarios','turno','turnos','fichaje','jornada laboral','control horario','registro de horas']],
+    ['timer', ['temporizador','temporizadores','cronometro','cronometros','pomodoro','cuenta atras','intervalos de tiempo']],
+    ['target', ['objetivo','objetivos','meta','metas','hito','hitos','resultados clave','seguimiento de logros']],
+    ['clipboard-check', ['formulario','formularios','encuesta','encuestas','inspeccion','inspecciones','auditoria','auditorias','recogida de respuestas']],
+    ['briefcase', ['empresa','empresas','negocio','negocios','gestion empresarial','despacho','oficina','actividad profesional']],
+    ['kanban', ['proyecto','proyectos','kanban','planificacion de proyecto','scrum','flujo de trabajo','roadmap']],
+    ['graduation-cap', ['curso','cursos','academia','universidad','formacion','aprendizaje','examen','examenes','aula virtual']],
+    ['book-open', ['libro','libros','lectura','biblioteca','manual','manuales','enciclopedia','guia de lectura']],
+    ['languages', ['idioma','idiomas','traduccion','traductor','traductora','ingles','frances','vocabulario','diccionario bilingue']],
+    ['chart-column', ['estadistica','estadisticas','analitica','metricas','grafica','graficas','informe de datos','panel de indicadores']],
+    ['wallet-cards', ['finanzas personales','gasto','gastos','presupuesto','presupuestos','ahorro','ahorros','cartera personal','control financiero']],
+    ['landmark', ['banco','bancos','banca','contabilidad','inversion','inversiones','patrimonio','tesoreria','gestion contable']],
+    ['receipt', ['factura','facturas','ticket','tickets','recibo','recibos','cobro','cobros','facturacion']],
+    ['trending-up', ['venta','ventas','crecimiento','bolsa','trading','mercado bursatil','cotizacion','cotizaciones','rendimiento comercial']],
+    ['message-circle', ['chat','chats','mensajeria','mensaje','mensajes','conversacion','conversaciones','foro','foros']],
+    ['mail', ['correo','correos','email','emails','newsletter','boletin','boletines','bandeja de entrada']],
+    ['users', ['equipo','equipos','contacto','contactos','comunidad','comunidades','miembro','miembros','directorio de personas']],
+    ['phone', ['telefono','telefonos','llamada','llamadas','marcador telefonico','centralita','directorio telefonico']],
+    ['video', ['videollamada','videollamadas','reunion virtual','reuniones virtuales','streaming','conferencia online','sala de reunion']],
+    ['palette', ['diseno','creatividad','arte','colores','ilustracion','branding','identidad visual','moodboard']],
+    ['pen-tool', ['escritura','redaccion','editor de texto','firma digital','blog','blogs','diario personal','procesador de textos']],
+    ['camera', ['foto','fotos','fotografia','camara','camaras','album fotografico','galeria de imagenes','retrato']],
+    ['music', ['musica','cancion','canciones','playlist','playlists','reproductor musical','melodia','radio musical']],
+    ['film', ['cine','pelicula','peliculas','editor de video','montaje audiovisual','cortometraje','filmoteca','produccion audiovisual']],
+    ['mic', ['podcast','podcasts','microfono','grabacion de voz','locucion','transcripcion de audio','dictado','nota de voz']],
+    ['code-2', ['codigo','programacion','desarrollo web','software','api','apis','depuracion','editor de codigo']],
+    ['terminal', ['terminal','consola','comandos','shell','servidor ssh','linea de comandos','administracion de sistemas']],
+    ['database', ['base de datos','bases de datos','database','registros digitales','sql','repositorio de datos','gestor de registros']],
+    ['cloud', ['nube','cloud','sincronizacion','backup','respaldo','respaldos','almacenamiento online','disco virtual']],
+    ['bot', ['asistente virtual','chatbot','chatbots','inteligencia artificial','automatizacion','agente ia','ia generativa','copiloto digital']],
+    ['map', ['mapa','mapas','ubicacion','ubicaciones','ruta','rutas','geolocalizacion','gps','navegacion terrestre']],
+    ['plane', ['vuelo','vuelos','avion','aviones','turismo','aeropuerto','aeropuertos','viaje internacional']],
+    ['shopping-cart', ['tienda','tiendas','compra','compras','comercio electronico','carrito','catalogo de productos','ecommerce','escaparate digital']],
+    ['package', ['inventario','inventarios','almacen','almacenes','envio','envios','paquete','paquetes','logistica','control de stock']],
+    ['utensils', ['comida','comidas','receta','recetas','restaurante','restaurantes','nutricion','cocina','menu gastronomico']],
+    ['dumbbell', ['deporte','deportes','entrenamiento','fitness','gimnasio','ejercicio','ejercicios','rutina deportiva']],
+    ['house', ['hogar','casa','casas','inmobiliaria','vivienda','viviendas','domotica','alquiler residencial']],
+    ['gamepad-2', ['juego','juegos','gaming','videojuego','videojuegos','arcade','videoconsola','entretenimiento interactivo']],
+    ['wrench', ['herramienta','herramientas','mantenimiento','reparacion','reparaciones','taller','servicio tecnico','bricolaje']],
+    ['shield-check', ['seguridad','ciberseguridad','proteccion','privacidad','contrasena','contrasenas','autenticacion','control de acceso']],
+    ['scale', ['legal','juridico','juridica','ley','leyes','contrato','contratos','derecho','abogado','abogada']]
 ];
 
 const $ = (selector) => document.querySelector(selector);
@@ -102,11 +102,28 @@ function safeUrl(value) {
 }
 function uid(prefix) { return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`; }
 function normalizedText(value) {
-    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
 }
 function chooseAppIcon(app) {
-    const text = normalizedText(`${app.name || ''} ${app.description || ''}`);
-    return ICON_RULES.find(([, keywords]) => keywords.some((keyword) => text.includes(keyword)))?.[0] || 'app-window';
+    const name = ` ${normalizedText(app.name)} `;
+    const description = ` ${normalizedText(app.description)} `;
+    let bestMatch = { icon:'app-window', score:0 };
+    ICON_RULES.forEach(([icon, keywords]) => {
+        const score = keywords.reduce((total, keyword) => {
+            const normalizedKeyword = normalizedText(keyword);
+            const specificity = normalizedKeyword.split(' ').length;
+            if (name.includes(` ${normalizedKeyword} `)) return total + 10 + specificity;
+            if (description.includes(` ${normalizedKeyword} `)) return total + 3 + specificity;
+            return total;
+        }, 0);
+        if (score > bestMatch.score) bestMatch = { icon, score };
+    });
+    return bestMatch.icon;
 }
 function appDisplayColor(app) {
     const category = state.categories.find((entry) => entry.id === app.categoryId);
